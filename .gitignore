@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+*.pyc
+
+# IDEs and editors
+.vscode
+
+# Git backup files
+.gitignore~
+
+# Build and distribution
+build
+cda_api.egg-info
+dist
+
+
+# Python environments
+.venv
+
+# Code quality tools
+.ruff_cache/
