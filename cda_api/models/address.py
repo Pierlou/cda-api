@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from cda_api.namespaces import HL7_NS
 from cda_api.utils import Parser
 
 
@@ -14,25 +13,13 @@ class Address:
     country: str | None
 
 
-FIELDS = {
-    "house_number": "hl7:houseNumber",
-    "street_name": "hl7:streetName",
-    "unit_id": "hl7:unitID",
-    "postal_code": "hl7:postalCode",
-    "city": "hl7:city",
-    "country": "hl7:country",
-}
-
-
 class AddressParser(Parser):
     def parse(self) -> Address:
-        obj = self.find(
-            "hl7:addr",
+        return Address(
+            house_number=self.raw["houseNumber"],
+            street_name=self.raw["streetName"],
+            unit_id=self.raw["houseNumber"],
+            postal_code=self.raw["houseNumber"],
+            city=self.raw["houseNumber"],
+            country=self.raw["houseNumber"],
         )
-
-        kwargs = {
-            field: obj.findtext(xpath, namespaces=HL7_NS)
-            for field, xpath in FIELDS.items()
-        }
-
-        return Address(**kwargs)

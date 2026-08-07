@@ -1,5 +1,5 @@
-from .parser import Parser
+from .jsonpath import get
 
 __all__ = [
-    "Parser",
+    "get",
 ]

@@ -1,8 +1,8 @@
-from .address import Address
-from .patient import Patient
+from .code import Code
+from .ext_id import ExtId
 
 
 __all__ = [
-    "Address",
-    "Patient",
+    "Code",
+    "ExtId",
 ]
