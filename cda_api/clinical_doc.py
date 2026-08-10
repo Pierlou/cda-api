@@ -4,8 +4,8 @@ from pathlib import Path
 import xmltodict
 
 from cda_api.models import (
-    Author,
-    AuthorParser,
+    Assigned,
+    AssignedParser,
     Code,
     CodeParser,
     Entity,
@@ -17,7 +17,7 @@ from cda_api.models import (
     Patient,
     PatientParser,
 )
-from cda_api.utils import get
+from cda_api.utils import get, parse_time
 
 
 class ClinicalDocument:
@@ -28,10 +28,7 @@ class ClinicalDocument:
         self.set_id: str = get(raw, "setId.@root")
         self.version_number: str = get(raw, "versionNumber.@value")
         self.title: str = get(raw, "title")
-        self.effective_time: datetime = datetime.strptime(
-            get(raw, "effectiveTime.@value"),
-            "%Y%m%d%H%M%S%z",
-        )
+        self.effective_time: datetime = parse_time(get(raw, "effectiveTime.@value"))
         self.language_code: str = get(raw, "languageCode.@code")
         self.type_id = ExtId(
             id=get(raw, "typeId.@root"),
@@ -40,7 +37,10 @@ class ClinicalDocument:
         self.template_ids = ExtIdParser(get(raw, "templateId")).parse()
         self.confidentiality_code = CodeParser(self._raw["confidentialityCode"]).parse()
         self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
-        self.author: Author = AuthorParser(self._raw["author"]).parse()
+        self.author: Assigned = AssignedParser(self._raw["author"]).parse(
+            assigned_key="assignedAuthor",
+            person_key="assignedPerson",
+        )
         self.informant: list[Entity] = [
             EntityParser(i["relatedEntity"]).parse()
             for i in self._raw.get("informant", [])
@@ -50,6 +50,10 @@ class ClinicalDocument:
         ).parse(
             type_code=self._raw["custodian"].get("@typeCode"),
             class_code=get(self._raw, "custodian.assignedCustodian").get("@classCode"),
+        )
+        self.legal_authenticator: Assigned = AssignedParser(self._raw["legalAuthenticator"]).parse(
+            assigned_key="assignedEntity",
+            person_key="assignedPerson",
         )
 
 

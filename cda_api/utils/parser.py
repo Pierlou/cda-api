@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 
 class Parser(ABC):
@@ -14,3 +15,7 @@ class Parser(ABC):
     @abstractmethod
     def parse(self):
         ...
+
+
+def parse_time(time_str: str) -> datetime:
+    return datetime.strptime(time_str, "%Y%m%d%H%M%S%z")

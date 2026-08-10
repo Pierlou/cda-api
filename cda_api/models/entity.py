@@ -13,7 +13,7 @@ class Entity(Person):
 
 class EntityParser(Parser):
     def parse(self) -> Entity:
-        person = PersonParser(self.raw, "relatedPerson").parse()
+        person = PersonParser(self.raw).parse(key="relatedPerson")
         return Entity(
             address=person.address,
             name=person.name,

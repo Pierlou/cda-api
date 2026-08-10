@@ -26,7 +26,7 @@ class OrganizationParser(Parser):
             telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
             ids=ExtIdParser(self.raw["id"]).parse(),
             standard_industry_class_code=(
-                CodeParser(self.raw["standardIndustryClassCode"])
+                CodeParser(self.raw["standardIndustryClassCode"]).parse()
                 if self.raw.get("standardIndustryClassCode")
                 else None
             ),

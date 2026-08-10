@@ -15,13 +15,9 @@ class Person:
 
 
 class PersonParser(Parser):
-    def __init__(self, raw: dict | list[dict] | None, key: str):
-        super().__init__(raw)
-        self._key = key
-
-    def parse(self) -> Person:
+    def parse(self, key: str) -> Person:
         return Person(
-            name=NameParser(self.raw[self._key]["name"]).parse(),
+            name=NameParser(self.raw[key]["name"]).parse(),
             address=AddressParser(self.raw["addr"]).parse() if self.raw.get("addr") else None,
             telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
         )

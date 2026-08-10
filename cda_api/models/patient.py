@@ -21,7 +21,7 @@ class Patient(Person):
 class PatientParser(Parser):
     def parse(self) -> Patient:
         patient = self.raw["patient"]
-        person = PersonParser(self.raw, "patient").parse()
+        person = PersonParser(self.raw).parse(key="patient")
         return Patient(
             class_code=patient["@classCode"],
             ids=ExtIdParser(self.raw["id"]).parse(),
@@ -34,5 +34,5 @@ class PatientParser(Parser):
             ).date(),
             birth_place=PlaceParser(patient["birthplace"]["place"]).parse(),
             administrative_gender_code=CodeParser(patient["administrativeGenderCode"]).parse(),
-            guardian_person=PersonParser(patient["guardian"], "guardianPerson").parse(),
+            guardian_person=PersonParser(patient["guardian"]).parse(key="guardianPerson"),
         )

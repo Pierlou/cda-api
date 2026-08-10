@@ -1,4 +1,4 @@
-from .author import Author, AuthorParser
+from .assigned import Assigned, AssignedParser
 from .code import Code, CodeParser
 from .entity import Entity, EntityParser
 from .ext_id import ExtId, ExtIdParser
@@ -7,8 +7,8 @@ from .patient import Patient, PatientParser
 
 
 __all__ = [
-    "Author",
-    "AuthorParser",
+    "Assigned",
+    "AssignedParser",
     "Code",
     "CodeParser",
     "Entity",
