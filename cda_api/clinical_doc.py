@@ -16,6 +16,8 @@ from cda_api.models import (
     OrganizationParser,
     Patient,
     PatientParser,
+    ServiceEvent,
+    ServiceEventParser,
 )
 from cda_api.utils import get, parse_time
 
@@ -54,6 +56,15 @@ class ClinicalDocument:
         self.legal_authenticator: Assigned = AssignedParser(self._raw["legalAuthenticator"]).parse(
             assigned_key="assignedEntity",
             person_key="assignedPerson",
+        )
+        # self.participant
+        self.documentation_of: list[ServiceEvent] = (
+            [ServiceEventParser(do["serviceEvent"]).parse()]
+            if isinstance((do := self._raw["documentationOf"]), dict)
+            else [
+                ServiceEventParser(do["serviceEvent"]).parse()
+                for do in self._raw["documentationOf"]
+            ]
         )
 
 

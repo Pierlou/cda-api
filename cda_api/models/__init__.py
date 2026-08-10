@@ -4,6 +4,7 @@ from .entity import Entity, EntityParser
 from .ext_id import ExtId, ExtIdParser
 from .organization import Organization, OrganizationParser
 from .patient import Patient, PatientParser
+from .service_event import ServiceEvent, ServiceEventParser
 
 
 __all__ = [
@@ -19,4 +20,6 @@ __all__ = [
     "OrganizationParser",
     "Patient",
     "PatientParser",
+    "ServiceEvent",
+    "ServiceEventParser",
 ]
