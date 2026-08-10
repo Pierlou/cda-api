@@ -1,15 +1,28 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 
+
+from cda_api.models.address import Address, AddressParser
 from cda_api.models.name import Name, NameParser
+from cda_api.models.telecom import Telecom, TelecomParser
 from cda_api.utils import Parser
 
 
 @dataclass(frozen=True)
 class Person:
     name: Name
+    address: Address | None
+    telecom: list[Telecom] | None
 
 
 class PersonParser(Parser):
+    def __init__(self, raw: dict | list[dict] | None, key: str):
+        super().__init__(raw)
+        self._key = key
+
     def parse(self) -> Person:
-        return Person(name=NameParser(self.raw["name"]).parse())
+        return Person(
+            name=NameParser(self.raw[self._key]["name"]).parse(),
+            address=AddressParser(self.raw["addr"]).parse() if self.raw.get("addr") else None,
+            telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
+        )

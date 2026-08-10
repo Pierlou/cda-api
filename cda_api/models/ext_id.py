@@ -7,7 +7,7 @@ from cda_api.utils import Parser
 class ExtId:
     "Dataclass for ids with potential extension"
     id: str
-    extension: str | None = None
+    extension: str | None
 
 
 class ExtIdParser(Parser):

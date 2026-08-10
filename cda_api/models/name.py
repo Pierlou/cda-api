@@ -13,8 +13,8 @@ class QualifiedName:
 class Name:
     family: list[QualifiedName]
     given: list[QualifiedName]
-    prefix: str | None = None
-    suffix: str | None = None
+    prefix: str | None
+    suffix: str | None
 
 
 class NameParser(Parser):
