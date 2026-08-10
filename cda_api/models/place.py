@@ -17,5 +17,5 @@ class PlaceParser(Parser):
             name=self.raw.get("name"),
         )
         if p.address is None and p.name is None:
-            raise Value("Either 'name' or 'address' of a Place shouldn't be None")
+            raise ValueError("Either 'name' or 'address' of a Place shouldn't be None")
         return p

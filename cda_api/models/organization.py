@@ -13,19 +13,23 @@ class Organization(Place):
     ids: list[ExtId]
     telecom: list[Telecom] | None
     standard_industry_class_code: Code | None
+    type_code: str | None
+    class_code: str | None
 
 
 class OrganizationParser(Parser):
-    def parse(self) -> Organization:
+    def parse(self, type_code: str | None = None, class_code: str | None = None) -> Organization:
         place = PlaceParser(self.raw).parse()
         return Organization(
             name=place.name,
             address=place.address,
-            telecom=TelecomParser(self.raw["telecom"]) if self.raw.get("telecom") else None,
+            telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
             ids=ExtIdParser(self.raw["id"]).parse(),
             standard_industry_class_code=(
                 CodeParser(self.raw["standardIndustryClassCode"])
                 if self.raw.get("standardIndustryClassCode")
                 else None
             ),
+            type_code=type_code,
+            class_code=class_code,
         )

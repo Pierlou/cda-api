@@ -12,6 +12,8 @@ from cda_api.models import (
     EntityParser,
     ExtId,
     ExtIdParser,
+    Organization,
+    OrganizationParser,
     Patient,
     PatientParser,
 )
@@ -26,7 +28,10 @@ class ClinicalDocument:
         self.set_id: str = get(raw, "setId.@root")
         self.version_number: str = get(raw, "versionNumber.@value")
         self.title: str = get(raw, "title")
-        self.effective_time: datetime = datetime.strptime(get(raw, "effectiveTime.@value"), "%Y%m%d%H%M%S%z")
+        self.effective_time: datetime = datetime.strptime(
+            get(raw, "effectiveTime.@value"),
+            "%Y%m%d%H%M%S%z",
+        )
         self.language_code: str = get(raw, "languageCode.@code")
         self.type_id = ExtId(
             id=get(raw, "typeId.@root"),
@@ -40,6 +45,12 @@ class ClinicalDocument:
             EntityParser(i["relatedEntity"]).parse()
             for i in self._raw.get("informant", [])
         ]
+        self.custodian = OrganizationParser(
+            get(self._raw, "custodian.assignedCustodian.representedCustodianOrganization")
+        ).parse(
+            type_code=self._raw["custodian"].get("@typeCode"),
+            class_code=get(self._raw, "custodian.assignedCustodian").get("@classCode"),
+        )
 
 
     @classmethod
