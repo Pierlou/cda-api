@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import xmltodict
 
-from cda_api.models import Code, ExtId
+from cda_api.models import Code, CodeParser, ExtId, ExtIdParser, Patient, PatientParser
 from cda_api.utils import get
 
 
@@ -21,14 +21,9 @@ class ClinicalDocument:
             id=get(raw, "typeId.@root"),
             extension=get(raw, "typeId.@extension"),
         )
-        self.template_ids  =[
-            ExtId(
-                id=i["@root"],
-                extension=i.get("@extension"),
-            )
-            for i in get(raw, "templateId")
-        ]
-        self.confidentiality_code = C
+        self.template_ids = ExtIdParser(get(raw, "templateId")).parse()
+        self.confidentiality_code = CodeParser(self._raw["confidentialityCode"]).parse()
+        self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
 
 
     @classmethod
@@ -36,13 +31,3 @@ class ClinicalDocument:
         with open(str(path), encoding="utf-8") as f:
             raw = xmltodict.parse(f.read())["ClinicalDocument"]
         return cls(raw)
-
-    @property
-    def confidentiality_code(self) -> Code:
-        c = raw["confidentialityCode"]
-        return Code(
-            code=c["@code"],
-            display_name=c["@displayName"],
-            code_system=c["@codeSystem"],
-            code_system_name=c.get("@codeSystemName"),
-        )
