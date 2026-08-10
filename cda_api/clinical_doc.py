@@ -8,6 +8,8 @@ from cda_api.models import (
     AuthorParser,
     Code,
     CodeParser,
+    Entity,
+    EntityParser,
     ExtId,
     ExtIdParser,
     Patient,
@@ -34,6 +36,10 @@ class ClinicalDocument:
         self.confidentiality_code = CodeParser(self._raw["confidentialityCode"]).parse()
         self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
         self.author: Author = AuthorParser(self._raw["author"]).parse()
+        self.informant: list[Entity] = [
+            EntityParser(i["relatedEntity"]).parse()
+            for i in self._raw.get("informant", [])
+        ]
 
 
     @classmethod
