@@ -12,10 +12,13 @@ class Address:
     postal_code: str | None = None
     country: str | None = None
     county: str | None = None
+    use: str | None = None
 
 
 class AddressParser(Parser):
-    def parse(self) -> Address:
+    def parse(self) -> Address | None:
+        if self.raw.get("@nullFlavor"):
+            return None
         return Address(
             house_number=self.raw.get("houseNumber"),
             street_name=self.raw.get("streetName"),
@@ -24,4 +27,5 @@ class AddressParser(Parser):
             city=self.raw["city"],
             country=self.raw.get("country"),
             county=self.raw.get("county"),
+            use=self.raw.get("@use"),
         )
