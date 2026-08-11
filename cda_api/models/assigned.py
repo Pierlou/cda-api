@@ -18,7 +18,7 @@ class Assigned(Person):
 
 
 class AssignedParser(Parser):
-    def parse(self, assigned_key: str, person_key: str) -> Assigned:
+    def parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Assigned:
         author = self.raw[assigned_key]
         person = PersonParser(author).parse(key=person_key)
         return Assigned(

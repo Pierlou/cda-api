@@ -6,13 +6,13 @@ from cda_api.utils import Parser, parse_time
 
 @dataclass(frozen=True)
 class EffectiveTime:
-    low: datetime
-    high: datetime
+    low: datetime | None
+    high: datetime | None
 
 
 class EffectiveTimeParser(Parser):
     def parse(self) -> EffectiveTime:
         return EffectiveTime(
-            low=parse_time(self.raw["low"]["@value"]),
-            high=parse_time(self.raw["high"]["@value"]),
+            low=parse_time(l["@value"]) if (l := self.raw.get("low")) else None,
+            high=parse_time(h["@value"]) if (h := self.raw.get("high")) else None,
         )

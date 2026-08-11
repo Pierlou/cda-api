@@ -36,12 +36,11 @@ class ClinicalDocument:
             id=get(raw, "typeId.@root"),
             extension=get(raw, "typeId.@extension"),
         )
-        self.template_ids = ExtIdParser(get(raw, "templateId")).parse()
+        self.template_id = ExtIdParser(get(raw, "templateId")).parse()
         self.confidentiality_code = CodeParser(self._raw["confidentialityCode"]).parse()
         self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
         self.author: Assigned = AssignedParser(self._raw["author"]).parse(
             assigned_key="assignedAuthor",
-            person_key="assignedPerson",
         )
         self.informant: list[Entity] = [
             EntityParser(i["relatedEntity"]).parse()
@@ -55,7 +54,6 @@ class ClinicalDocument:
         )
         self.legal_authenticator: Assigned = AssignedParser(self._raw["legalAuthenticator"]).parse(
             assigned_key="assignedEntity",
-            person_key="assignedPerson",
         )
         # self.participant
         self.documentation_of: list[ServiceEvent] = (
