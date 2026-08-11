@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import date, datetime
 
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser

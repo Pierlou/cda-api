@@ -7,10 +7,7 @@ class Parser(ABC):
         self.raw = raw
 
     def ensure_raw_is_list(self):
-        if self.raw is None:
-            self.raw = []
-        elif isinstance(self.raw, dict):
-            self.raw  =[self.raw]
+        self.raw = ensure_list(self.raw)
 
     @abstractmethod
     def parse(self):
@@ -19,3 +16,11 @@ class Parser(ABC):
 
 def parse_time(time_str: str) -> datetime:
     return datetime.strptime(time_str, "%Y%m%d%H%M%S%z")
+
+
+def ensure_list(val: list | dict | None) -> list[dict]:
+    if val is None:
+        return []
+    elif isinstance(val, dict):
+        return [val]
+    return val

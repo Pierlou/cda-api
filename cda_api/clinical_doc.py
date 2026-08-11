@@ -6,6 +6,8 @@ import xmltodict
 from cda_api.models import (
     Assigned,
     AssignedParser,
+    Body,
+    BodyParser,
     Code,
     CodeParser,
     EncompassingEncounter,
@@ -62,13 +64,14 @@ class ClinicalDocument:
             [ServiceEventParser(do["serviceEvent"]).parse()]
             if isinstance((do := self._raw["documentationOf"]), dict)
             else [
-                ServiceEventParser(do["serviceEvent"]).parse()
-                for do in self._raw["documentationOf"]
+                ServiceEventParser(k["serviceEvent"]).parse()
+                for k in do
             ]
         )
         self.component_of: EncompassingEncounter = EncompassingEncounterParser(
             get(self._raw, "componentOf.encompassingEncounter")
         ).parse()
+        self.component: Body = BodyParser(self._raw["component"]).parse()
 
 
     @classmethod
