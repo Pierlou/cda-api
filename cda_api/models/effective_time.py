@@ -6,8 +6,8 @@ from cda_api.utils import Parser, parse_time
 
 @dataclass(frozen=True)
 class EffectiveTime:
-    low: datetime | None
     high: datetime | None
+    low: datetime | None
 
 
 class EffectiveTimeParser(Parser):

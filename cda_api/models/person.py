@@ -9,8 +9,8 @@ from cda_api.utils import Parser
 
 @dataclass(frozen=True)
 class Person:
-    name: Name
     address: Address | None
+    name: Name
     telecom: list[Telecom] | None
 
 

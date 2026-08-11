@@ -12,11 +12,11 @@ from cda_api.utils import Parser
 @dataclass(frozen=True)
 class Perfomer(Person):
     code: Code | None
-    time: EffectiveTime | None
-    template_id: list[ExtId] | None
-    type_code: str | None
-    ids: list[ExtId]
+    id: list[ExtId]
     represented_organization: Organization
+    template_id: list[ExtId] | None
+    time: EffectiveTime | None
+    type_code: str | None
 
 
 class PerfomerParser(Parser):
@@ -31,6 +31,6 @@ class PerfomerParser(Parser):
             name=person.name,
             address=person.address,
             telecom=person.telecom,
-            ids=ExtIdParser(performer["id"]).parse(),
+            id=ExtIdParser(performer["id"]).parse(),
             represented_organization=OrganizationParser(performer["representedOrganization"]).parse(),
         )

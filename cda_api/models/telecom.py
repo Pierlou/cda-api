@@ -5,9 +5,9 @@ from cda_api.utils import Parser
 
 @dataclass(frozen=True)
 class Telecom:
-    value: str
     type: str
     use: str | None
+    value: str
 
 
 class TelecomParser(Parser):

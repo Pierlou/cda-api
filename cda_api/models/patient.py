@@ -10,12 +10,12 @@ from cda_api.utils import Parser
 
 @dataclass(frozen=True)
 class Patient(Person):
-    class_code: str
-    ids: list[ExtId]
-    birth_time: date
-    birth_place: Place
     administrative_gender_code: Code
+    birth_place: Place
+    birth_time: date
+    class_code: str
     guardian_person: Person
+    id: list[ExtId]
 
 
 class PatientParser(Parser):
@@ -24,7 +24,7 @@ class PatientParser(Parser):
         person = PersonParser(self.raw).parse(key="patient")
         return Patient(
             class_code=patient["@classCode"],
-            ids=ExtIdParser(self.raw["id"]).parse(),
+            id=ExtIdParser(self.raw["id"]).parse(),
             name=person.name,
             address=person.address,
             telecom=person.telecom,

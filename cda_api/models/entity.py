@@ -7,8 +7,8 @@ from cda_api.utils import Parser
 
 @dataclass(frozen=True)
 class Entity(Person):
-    code: Code
     class_code: str
+    code: Code
 
 
 class EntityParser(Parser):

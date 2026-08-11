@@ -1,5 +1,6 @@
 from .assigned import Assigned, AssignedParser
 from .code import Code, CodeParser
+from .encompassing_encounter import EncompassingEncounter, EncompassingEncounterParser
 from .entity import Entity, EntityParser
 from .ext_id import ExtId, ExtIdParser
 from .organization import Organization, OrganizationParser
@@ -12,6 +13,8 @@ __all__ = [
     "AssignedParser",
     "Code",
     "CodeParser",
+    "EncompassingEncounter",
+    "EncompassingEncounterParser",
     "Entity",
     "EntityParser",
     "ExtId",

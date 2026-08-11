@@ -10,11 +10,11 @@ from cda_api.utils import Parser
 
 @dataclass(frozen=True)
 class Organization(Place):
-    ids: list[ExtId]
-    telecom: list[Telecom] | None
-    standard_industry_class_code: Code | None
-    type_code: str | None
     class_code: str | None
+    id: list[ExtId]
+    standard_industry_class_code: Code | None
+    telecom: list[Telecom] | None
+    type_code: str | None
 
 
 class OrganizationParser(Parser):
@@ -24,7 +24,7 @@ class OrganizationParser(Parser):
             name=place.name,
             address=place.address,
             telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
-            ids=ExtIdParser(self.raw["id"]).parse(),
+            id=ExtIdParser(self.raw["id"]).parse(),
             standard_industry_class_code=(
                 CodeParser(self.raw["standardIndustryClassCode"]).parse()
                 if self.raw.get("standardIndustryClassCode")

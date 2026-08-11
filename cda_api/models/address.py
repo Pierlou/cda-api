@@ -6,12 +6,12 @@ from cda_api.utils import Parser
 @dataclass(frozen=True)
 class Address:
     city: str
-    house_number: int | None
-    street_name: str | None
-    unit_id: str | None
-    postal_code: str | None
     country: str | None
     county: str | None
+    house_number: int | None
+    postal_code: str | None
+    street_name: str | None
+    unit_id: str | None
     use: str | None
 
 

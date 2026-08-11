@@ -6,12 +6,14 @@ from cda_api.utils import Parser
 @dataclass(frozen=True)
 class ExtId:
     "Dataclass for ids with potential extension"
-    id: str
     extension: str | None
+    id: str
 
 
 class ExtIdParser(Parser):
     def parse(self) -> list[ExtId]:
+        if self.raw is None:
+            return []
         self.ensure_raw_is_list()
         ext_ids = []
         for eid in self.raw:

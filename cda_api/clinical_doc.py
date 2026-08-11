@@ -8,6 +8,8 @@ from cda_api.models import (
     AssignedParser,
     Code,
     CodeParser,
+    EncompassingEncounter,
+    EncompassingEncounterParser,
     Entity,
     EntityParser,
     ExtId,
@@ -64,6 +66,9 @@ class ClinicalDocument:
                 for do in self._raw["documentationOf"]
             ]
         )
+        self.component_of: EncompassingEncounter = EncompassingEncounterParser(
+            get(self._raw, "componentOf.encompassingEncounter")
+        ).parse()
 
 
     @classmethod
