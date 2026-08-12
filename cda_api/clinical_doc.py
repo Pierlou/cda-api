@@ -29,6 +29,7 @@ from cda_api.utils import get, parse_time
 class ClinicalDocument:
     def __init__(self, raw: dict, name: str):
         self._raw: dict = raw
+        self.name: str = name
         self.realm_code: str = get(raw, "realmCode.@code")
         self.id: str = get(raw, "id.@root")
         self.set_id: str = get(raw, "setId.@root")
@@ -40,17 +41,18 @@ class ClinicalDocument:
             id=get(raw, "typeId.@root"),
             extension=get(raw, "typeId.@extension"),
         )
-        self.template_id = ExtIdParser(get(raw, "templateId")).parse()
-        self.confidentiality_code = CodeParser(self._raw["confidentialityCode"]).parse()
+        self.template_id: list[ExtId] = ExtIdParser(get(raw, "templateId")).parse()
+        self.confidentiality_code: Code = CodeParser(self._raw["confidentialityCode"]).parse()
         self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
         self.author: Assigned = AssignedParser(self._raw["author"]).parse(
             assigned_key="assignedAuthor",
+            device_key="assignedAuthoringDevice",
         )
         self.informant: list[Entity] = [
             EntityParser(i["relatedEntity"]).parse()
             for i in self._raw.get("informant", [])
         ]
-        self.custodian = OrganizationParser(
+        self.custodian: Organization = OrganizationParser(
             get(self._raw, "custodian.assignedCustodian.representedCustodianOrganization")
         ).parse(
             type_code=self._raw["custodian"].get("@typeCode"),

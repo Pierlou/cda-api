@@ -12,7 +12,9 @@ class Code:
 
 
 class CodeParser(Parser):
-    def parse(self) -> Code:
+    def parse(self) -> Code | None:
+        if self.raw is None:
+            return None
         return Code(
             code=self.raw["@code"],
             display_name=self.raw["@displayName"],

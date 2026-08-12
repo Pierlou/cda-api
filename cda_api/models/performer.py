@@ -5,7 +5,7 @@ from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.organization import Organization, OrganizationParser
 from cda_api.models.person import Person, PersonParser
-from cda_api.utils import Parser
+from cda_api.utils import NullObject, Parser
 
 
 @dataclass(frozen=True)
@@ -21,12 +21,16 @@ class Perfomer(Person):
 class PerfomerParser(Parser):
     def parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Perfomer:
         performer = self.raw[assigned_key]
-        person = PersonParser(performer).parse(key=person_key)
+        person = (
+            PersonParser(performer).parse(key=person_key)
+            if person_key in performer
+            else NullObject()
+        )
         return Perfomer(
             type_code=self.raw.get("@typeCode"),
             template_id=ExtIdParser(ti).parse() if (ti := self.raw.get("templateId")) else None,
             time=EffectiveTimeParser(t).parse() if (t := self.raw.get("time")) else None,
-            code=CodeParser(c).parse() if (c := self.raw.get("code")) else None,
+            code=CodeParser(self.raw.get("code")).parse(),
             name=person.name,
             address=person.address,
             telecom=person.telecom,

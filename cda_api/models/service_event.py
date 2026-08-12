@@ -10,7 +10,7 @@ from cda_api.utils import Parser
 @dataclass(frozen=True)
 class ServiceEvent:
     class_code: str | None
-    code: Code
+    code: Code | None
     effective_time: EffectiveTime | None
     id: list[ExtId]
     performer: list[Perfomer]
@@ -19,7 +19,7 @@ class ServiceEvent:
 class ServiceEventParser(Parser):
     def parse(self) -> ServiceEvent:
         return ServiceEvent(
-            code=CodeParser(self.raw["code"]).parse(),
+            code=CodeParser(self.raw.get("code")).parse(),
             class_code=self.raw.get("@classCode"),
             effective_time=EffectiveTimeParser(et).parse() if (et := self.raw.get("effectiveTime")) else None,
             id=ExtIdParser(self.raw.get("id")).parse(),

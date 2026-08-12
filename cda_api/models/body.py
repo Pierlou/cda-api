@@ -3,10 +3,7 @@ import logging
 import re
 
 from cda_api.models.code import Code, CodeParser
-from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
-from cda_api.models.organization import Organization, OrganizationParser
-from cda_api.models.person import Person, PersonParser
 from cda_api.utils import Parser, ensure_list, get
 
 
@@ -52,9 +49,9 @@ class TableParser(Parser):
 
 @dataclass(frozen=True)
 class Section:
-    code: Code
+    code: Code | None
     class_code: str | None
-    id: ExtId | None
+    id: list[ExtId]
     mood_code: str | None
     template_id: list[ExtId]
     title: str
@@ -70,12 +67,12 @@ class SectionParser(Parser):
             logging.error(f"Invalid text in section: {text}")
             text = {}
         return Section(
-            template_id=ExtIdParser(ti).parse() if (ti := self.raw.get("templateId")) else None,
-            code=CodeParser(c).parse() if (c := self.raw.get("code")) else None,
+            template_id=ExtIdParser(self.raw.get("templateId")).parse(),
+            code=CodeParser(self.raw.get("code")).parse(),
             class_code=self.raw.get("@classCode"),
             mood_code=self.raw.get("@moodCode"),
             title=self.raw["title"],
-            id=ExtId(id=i["@root"], extension=i.get("@extension")) if (i := self.raw.get("id")) else None,
+            id=ExtIdParser(self.raw.get("id")).parse(),
             tables=(
                 []
                 if (t := text.get("table")) is None
