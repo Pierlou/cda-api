@@ -2,30 +2,41 @@ from dataclasses import dataclass
 import logging
 import re
 
+import pandas as pd
+
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.utils import Parser, ensure_list, get
 
 
-def get_clean_text(field: dict):
+def get_clean_text(field: str | dict | None) -> str | None:
     """Helper for headers and rows"""
+    if field is None:
+        return None
+    text = (
+        field
+        if isinstance(field, str)
+        else field.get("#text") or field.get("content", {}).get("#text")
+    )
+    if text is None:
+        return None
     return re.sub(
         " +",
         " ",
-        (field.get("#text") or field["content"]["#text"]).replace("\n", " "),
+        text.replace("\n", " "),
     )
 
 
 @dataclass(frozen=True)
 class Table:
     headers: list[str] | None
-    rows: str
+    rows: list[str | None]
+    df: pd.DataFrame | None
 
 
 class TableParser(Parser):
     def parse(self) -> Table:
         thead = self.raw.get("thead")
-        print(thead)
         if isinstance(thead, dict):
             tr = (
                 thead["tr"]
@@ -44,7 +55,17 @@ class TableParser(Parser):
         else:
             headers = None
         
-        # return Table()
+        tbody = self.raw.get("tbody")
+        rows: list[list[str | None]] = [
+            [get_clean_text(cell) for cell in row["td"]]
+            for row in ensure_list(tbody["tr"])
+        ]
+        if headers is not None and all(len(headers) == len(row) for row in rows):
+            df = pd.DataFrame(rows, columns=headers, dtype=str)
+        else:
+            logging.warning("A table could not be loaded as DataFrame")
+            df = None
+        return Table(headers=headers, rows=rows, df=df)
 
 
 @dataclass(frozen=True)
@@ -55,17 +76,22 @@ class Section:
     mood_code: str | None
     template_id: list[ExtId]
     title: str
-    # text
-    tables: None
+    text: str | None
+    tables: list[Table] | None
     # entry
 
 
 class SectionParser(Parser):
     def parse(self) -> Section:
-        text = self.raw.get("text", {}) or {}
-        if not isinstance(text, dict):
-            logging.error(f"Invalid text in section: {text}")
-            text = {}
+        text = self.raw.get("text", "")
+        tables = None
+        if isinstance(text, dict):
+            if text.get("table"):
+                # we have tables to parse!
+                tables = ensure_list(text["table"])
+                text = None
+            else:
+                text = text.get("#text")
         return Section(
             template_id=ExtIdParser(self.raw.get("templateId")).parse(),
             code=CodeParser(self.raw.get("code")).parse(),
@@ -73,15 +99,11 @@ class SectionParser(Parser):
             mood_code=self.raw.get("@moodCode"),
             title=self.raw["title"],
             id=ExtIdParser(self.raw.get("id")).parse(),
+            text=None if text is None else get_clean_text(text),
             tables=(
                 []
-                if (t := text.get("table")) is None
-                else [TableParser(t).parse()]
-                if isinstance(t, dict)
-                else [
-                    TableParser(k).parse()
-                    for k in t
-                ]
+                if tables is None
+                else [TableParser(t).parse() for t in tables]
             ),
        )
 

@@ -4,7 +4,7 @@ from cda_api.models.code import Code, CodeParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.entity import Entity, EntityParser
 from cda_api.models.organization import Organization, OrganizationParser
-from cda_api.utils import NullObject, Parser
+from cda_api.utils import Parser
 
 
 @dataclass(frozen=True)

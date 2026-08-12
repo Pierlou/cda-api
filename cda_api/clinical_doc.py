@@ -82,7 +82,7 @@ class ClinicalDocument:
     def load(cls, path: str | Path) -> "ClinicalDocument":
         with open(str(path), encoding="utf-8") as f:
             raw = xmltodict.parse(f.read())["ClinicalDocument"]
-        name = str(path).split("/")[-1].split(".")[0]
+        name = ".".join(str(path).split("/")[-1].split(".")[:-1])
         return cls(raw, name)
 
     def to_json(self, file_path: str | Path | None = None) -> None:
