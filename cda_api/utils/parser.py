@@ -20,7 +20,7 @@ def parse_time(time_str: str) -> datetime:
     if re.match(r"\d{14}\+\d{4}", time_str):
         return datetime.strptime(time_str, "%Y%m%d%H%M%S%z")
     # *sometimes* dates are badly formatted, trying to recontruct
-    logging.warning(f"{time_str} is not in this expected format, trying to cope")
+    logging.warning(f"{time_str} is not in this expected format, trying to get by")
     tmp = time_str.split("+")
     if len(tmp) == 2:
         d, tz = tmp
