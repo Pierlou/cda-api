@@ -117,16 +117,13 @@ class Body:
 class BodyParser(Parser):
     def parse(self) -> Body:
         if self.raw.get("structuredBody"):
+            sections = ensure_list(get(self.raw, "structuredBody.component"))
             return Body(
                 _type="structured",
-                content=(
-                    [SectionParser(c["section"]).parse()]
-                    if isinstance((c := get(self.raw, "structuredBody.component")), dict)
-                    else [
-                        SectionParser(s["section"]).parse()
-                        for s in c
-                    ]
-                )
+                content=[
+                    SectionParser(s["section"]).parse()
+                    for s in sections
+                ],
             )
         elif self.raw.get("nonXMLBody"):
             return Body(
