@@ -17,7 +17,7 @@ class TelecomParser(Parser):
         self.ensure_raw_is_list()
         telecoms = []
         for tlc in self.raw:
-            rtype, value = tlc["@value"].split((":"))
+            rtype, value = tlc["@value"].split(":")
             telecoms.append(
                 Telecom(
                     value=value,

@@ -14,11 +14,7 @@ class Location(Place):
 
 class LocationParser(Parser):
     def parse(self, place_key: str = "location") -> Location:
-        place = (
-            PlaceParser(self.raw[place_key]).parse()
-            if self.raw.get(place_key)
-            else None
-        )
+        place = PlaceParser(self.raw[place_key]).parse() if self.raw.get(place_key) else None
         return Location(
             name=None if place is None else place.name,
             address=None if place is None else place.address,

@@ -1,6 +1,6 @@
-from dataclasses import dataclass
 import logging
 import re
+from dataclasses import dataclass
 
 import pandas as pd
 
@@ -46,19 +46,13 @@ class TableParser(Parser):
             )
             # TODO: handle colspan for merged heading cells
             th = ensure_list(tr["th"])
-            headers = [
-                h
-                if isinstance(h, str)
-                else get_clean_text(h)
-                for h in th
-            ]
+            headers = [h if isinstance(h, str) else get_clean_text(h) for h in th]
         else:
             headers = None
-        
+
         tbody = self.raw.get("tbody")
         rows: list[list[str | None]] = [
-            [get_clean_text(cell) for cell in row["td"]]
-            for row in ensure_list(tbody["tr"])
+            [get_clean_text(cell) for cell in row["td"]] for row in ensure_list(tbody["tr"])
         ]
         if headers is not None and all(len(headers) == len(row) for row in rows):
             df = pd.DataFrame(rows, columns=headers, dtype=str)
@@ -100,12 +94,8 @@ class SectionParser(Parser):
             title=self.raw["title"],
             id=ExtIdParser(self.raw.get("id")).parse(),
             text=None if text is None else get_clean_text(text),
-            tables=(
-                []
-                if tables is None
-                else [TableParser(t).parse() for t in tables]
-            ),
-       )
+            tables=([] if tables is None else [TableParser(t).parse() for t in tables]),
+        )
 
 
 @dataclass(frozen=True)
@@ -120,10 +110,7 @@ class BodyParser(Parser):
             sections = ensure_list(get(self.raw, "structuredBody.component"))
             return Body(
                 _type="structured",
-                content=[
-                    SectionParser(s["section"]).parse()
-                    for s in sections
-                ],
+                content=[SectionParser(s["section"]).parse() for s in sections],
             )
         elif self.raw.get("nonXMLBody"):
             return Body(

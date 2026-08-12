@@ -6,6 +6,7 @@ from cda_api.utils import Parser
 @dataclass(frozen=True)
 class ExtId:
     "Dataclass for ids with potential extension"
+
     id: str
     extension: str | None
 

@@ -35,5 +35,7 @@ class PerfomerParser(Parser):
             address=person.address,
             telecom=person.telecom,
             id=ExtIdParser(performer["id"]).parse(),
-            represented_organization=OrganizationParser(performer["representedOrganization"]).parse(),
+            represented_organization=OrganizationParser(
+                performer["representedOrganization"]
+            ).parse(),
         )

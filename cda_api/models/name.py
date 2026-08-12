@@ -43,4 +43,3 @@ class NameParser(Parser):
                 )
                 for name in value
             ]
-        

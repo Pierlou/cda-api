@@ -1,6 +1,7 @@
-from datetime import datetime
 import json
+from datetime import datetime
 from pathlib import Path
+
 import xmltodict
 
 from cda_api.models import (
@@ -51,8 +52,7 @@ class ClinicalDocument:
             device_key="assignedAuthoringDevice",
         )
         self.informant: list[Entity] = [
-            EntityParser(i["relatedEntity"]).parse()
-            for i in self._raw.get("informant", [])
+            EntityParser(i["relatedEntity"]).parse() for i in self._raw.get("informant", [])
         ]
         self.custodian: Organization = OrganizationParser(
             get(self._raw, "custodian.assignedCustodian.representedCustodianOrganization")
@@ -63,20 +63,18 @@ class ClinicalDocument:
         self.legal_authenticator: Assigned = AssignedParser(self._raw["legalAuthenticator"]).parse(
             assigned_key="assignedEntity",
         )
-        self.participant: list[Participant] = ParticipantParser(self._raw.get("participant")).parse()
+        self.participant: list[Participant] = ParticipantParser(
+            self._raw.get("participant")
+        ).parse()
         self.documentation_of: list[ServiceEvent] = (
             [ServiceEventParser(do["serviceEvent"]).parse()]
             if isinstance((do := self._raw["documentationOf"]), dict)
-            else [
-                ServiceEventParser(k["serviceEvent"]).parse()
-                for k in do
-            ]
+            else [ServiceEventParser(k["serviceEvent"]).parse() for k in do]
         )
         self.component_of: EncompassingEncounter = EncompassingEncounterParser(
             get(self._raw, "componentOf.encompassingEncounter")
         ).parse()
         self.component: Body = BodyParser(self._raw["component"]).parse()
-
 
     @classmethod
     def load(cls, path: str | Path) -> "ClinicalDocument":

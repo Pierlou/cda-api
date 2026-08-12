@@ -21,9 +21,13 @@ class ServiceEventParser(Parser):
         return ServiceEvent(
             code=CodeParser(self.raw.get("code")).parse(),
             class_code=self.raw.get("@classCode"),
-            effective_time=EffectiveTimeParser(et).parse() if (et := self.raw.get("effectiveTime")) else None,
+            effective_time=EffectiveTimeParser(et).parse()
+            if (et := self.raw.get("effectiveTime"))
+            else None,
             id=ExtIdParser(self.raw.get("id")).parse(),
             performer=PerfomerParser(p).parse(
                 assigned_key="assignedEntity",
-            ) if (p := self.raw.get("performer")) else None,
+            )
+            if (p := self.raw.get("performer"))
+            else None,
         )

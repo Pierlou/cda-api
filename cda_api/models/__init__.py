@@ -9,7 +9,6 @@ from .participant import Participant, ParticipantParser
 from .patient import Patient, PatientParser
 from .service_event import ServiceEvent, ServiceEventParser
 
-
 __all__ = [
     "Assigned",
     "AssignedParser",

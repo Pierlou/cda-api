@@ -17,7 +17,9 @@ class Organization(Place):
 
 
 class OrganizationParser(Parser):
-    def parse(self, type_code: str | None = None, class_code: str | None = None) -> Organization | None:
+    def parse(
+        self, type_code: str | None = None, class_code: str | None = None
+    ) -> Organization | None:
         if self.raw is None:
             return None
         place = (
@@ -30,7 +32,9 @@ class OrganizationParser(Parser):
             address=place.address,
             telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
             id=ExtIdParser(self.raw.get("id")).parse(),
-            standard_industry_class_code=CodeParser(self.raw.get("standardIndustryClassCode")).parse(),
+            standard_industry_class_code=CodeParser(
+                self.raw.get("standardIndustryClassCode")
+            ).parse(),
             type_code=type_code,
             class_code=class_code,
         )

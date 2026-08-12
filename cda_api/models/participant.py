@@ -26,8 +26,12 @@ class ParticipantParser(Parser):
                 entity: Entity = EntityParser(p).parse(person_key="associatedPerson")
                 orga: Organization = OrganizationParser(p.get("scopingOrganization")).parse()
             elif p.get("associatedEntity", {}).get("associatedPerson"):
-                entity = Entity = EntityParser(p["associatedEntity"]).parse(person_key="associatedPerson")
-                orga: Organization = OrganizationParser(p["associatedEntity"].get("scopingOrganization")).parse()
+                entity: Entity = EntityParser(p["associatedEntity"]).parse(
+                    person_key="associatedPerson"
+                )
+                orga: Organization = OrganizationParser(
+                    p["associatedEntity"].get("scopingOrganization")
+                ).parse()
             participants.append(
                 Participant(
                     type_code=p.get("@typeCode"),

@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
-from datetime import datetime
 import logging
 import re
+from abc import ABC, abstractmethod
+from datetime import datetime
 
 
 class Parser(ABC):
@@ -12,8 +12,7 @@ class Parser(ABC):
         self.raw = ensure_list(self.raw)
 
     @abstractmethod
-    def parse(self):
-        ...
+    def parse(self): ...
 
 
 def parse_time(time_str: str) -> datetime:
