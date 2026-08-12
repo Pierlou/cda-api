@@ -27,7 +27,7 @@ from cda_api.utils import get, parse_time
 
 
 class ClinicalDocument:
-    def __init__(self, raw: dict):
+    def __init__(self, raw: dict, name: str):
         self._raw: dict = raw
         self.realm_code: str = get(raw, "realmCode.@code")
         self.id: str = get(raw, "id.@root")
@@ -78,4 +78,14 @@ class ClinicalDocument:
     def load(cls, path: str | Path) -> "ClinicalDocument":
         with open(str(path), encoding="utf-8") as f:
             raw = xmltodict.parse(f.read())["ClinicalDocument"]
-        return cls(raw)
+        name = str(path).split("/")[-1].(".")[0]
+        return cls(raw, name)
+
+    def to_json(self, file_path: str | Path | None = None) -> None:
+        file_path = file_path or f"{self.name}.json"
+        with open(file_path, "w") as f:
+            json.dump(self._raw, f)
+
+    def export(self):
+        # TODO: create export from needed keys
+        pass
