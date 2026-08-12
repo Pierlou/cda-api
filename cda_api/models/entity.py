@@ -12,8 +12,8 @@ class Entity(Person):
 
 
 class EntityParser(Parser):
-    def parse(self) -> Entity:
-        person = PersonParser(self.raw).parse(key="relatedPerson")
+    def parse(self, person_key: str = "relatedPerson") -> Entity:
+        person = PersonParser(self.raw).parse(key=person_key)
         return Entity(
             address=person.address,
             name=person.name,

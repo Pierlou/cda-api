@@ -18,6 +18,8 @@ from cda_api.models import (
     ExtIdParser,
     Organization,
     OrganizationParser,
+    Participant,
+    ParticipantParser,
     Patient,
     PatientParser,
     ServiceEvent,
@@ -61,7 +63,7 @@ class ClinicalDocument:
         self.legal_authenticator: Assigned = AssignedParser(self._raw["legalAuthenticator"]).parse(
             assigned_key="assignedEntity",
         )
-        # self.participant
+        self.participant: list[Participant] = ParticipantParser(self._raw.get("participant")).parse()
         self.documentation_of: list[ServiceEvent] = (
             [ServiceEventParser(do["serviceEvent"]).parse()]
             if isinstance((do := self._raw["documentationOf"]), dict)

@@ -11,7 +11,9 @@ class EffectiveTime:
 
 
 class EffectiveTimeParser(Parser):
-    def parse(self) -> EffectiveTime:
+    def parse(self) -> EffectiveTime | None:
+        if self.raw is None:
+            return None
         return EffectiveTime(
             low=parse_time(l["@value"]) if (l := self.raw.get("low")) else None,
             high=parse_time(h["@value"]) if (h := self.raw.get("high")) else None,

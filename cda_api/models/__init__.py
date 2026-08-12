@@ -5,6 +5,7 @@ from .encompassing_encounter import EncompassingEncounter, EncompassingEncounter
 from .entity import Entity, EntityParser
 from .ext_id import ExtId, ExtIdParser
 from .organization import Organization, OrganizationParser
+from .participant import Participant, ParticipantParser
 from .patient import Patient, PatientParser
 from .service_event import ServiceEvent, ServiceEventParser
 
@@ -24,6 +25,8 @@ __all__ = [
     "ExtIdParser",
     "Organization",
     "OrganizationParser",
+    "Participant",
+    "ParticipantParser",
     "Patient",
     "PatientParser",
     "ServiceEvent",
