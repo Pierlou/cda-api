@@ -26,7 +26,9 @@ class AssignedParser(Parser):
         assigned_key: str,
         person_key: str = "assignedPerson",
         device_key: str | None = None,
-    ) -> Assigned:
+    ) -> Assigned | None:
+        if self.raw is None:
+            return None
         assigned = self.raw[assigned_key]
         if assigned.get(person_key):
             person = PersonParser(assigned).parse(key=person_key)
@@ -46,11 +48,9 @@ class AssignedParser(Parser):
             address=person.address,
             telecom=person.telecom,
             id=ExtIdParser(assigned["id"]).parse(),
-            represented_organization=(
-                OrganizationParser(o).parse()
-                if (o := assigned.get("representedOrganization"))
-                else None
-            ),
+            represented_organization=OrganizationParser(
+                assigned.get("representedOrganization")
+            ).parse(),
             manufacturer_model_name=device.manufacturer_model_name,
             software_name=device.software_name,
         )

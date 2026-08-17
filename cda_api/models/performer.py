@@ -13,13 +13,15 @@ class Perfomer(Person):
     code: Code | None
     id: list[ExtId]
     represented_organization: Organization
-    template_id: list[ExtId] | None
+    template_id: list[ExtId]
     time: EffectiveTime | None
     type_code: str | None
 
 
 class PerfomerParser(Parser):
-    def parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Perfomer:
+    def parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Perfomer | None:
+        if self.raw is None:
+            return None
         performer = self.raw[assigned_key]
         person = (
             PersonParser(performer).parse(key=person_key)
@@ -28,8 +30,8 @@ class PerfomerParser(Parser):
         )
         return Perfomer(
             type_code=self.raw.get("@typeCode"),
-            template_id=ExtIdParser(ti).parse() if (ti := self.raw.get("templateId")) else None,
-            time=EffectiveTimeParser(t).parse() if (t := self.raw.get("time")) else None,
+            template_id=ExtIdParser(self.raw.get("templateId")).parse(),
+            time=EffectiveTimeParser(self.raw.get("time")).parse(),
             code=CodeParser(self.raw.get("code")).parse(),
             name=person.name,
             address=person.address,

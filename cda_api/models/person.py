@@ -10,13 +10,13 @@ from cda_api.utils import Parser
 class Person:
     address: Address | None
     name: Name
-    telecom: list[Telecom] | None
+    telecom: list[Telecom]
 
 
 class PersonParser(Parser):
     def parse(self, key: str) -> Person:
         return Person(
             name=NameParser(self.raw[key]["name"]).parse(),
-            address=AddressParser(self.raw["addr"]).parse() if self.raw.get("addr") else None,
-            telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
+            address=AddressParser(self.raw.get("addr")).parse(),
+            telecom=TelecomParser(self.raw.get("telecom")).parse(),
         )

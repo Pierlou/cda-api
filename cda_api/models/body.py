@@ -71,7 +71,7 @@ class Section:
     template_id: list[ExtId]
     title: str
     text: str | None
-    tables: list[Table] | None
+    tables: list[Table]
     # entry
 
 

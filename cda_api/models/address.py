@@ -17,7 +17,7 @@ class Address:
 
 class AddressParser(Parser):
     def parse(self) -> Address | None:
-        if self.raw.get("@nullFlavor"):
+        if self.raw is None or self.raw.get("@nullFlavor"):
             return None
         return Address(
             house_number=self.raw.get("houseNumber"),

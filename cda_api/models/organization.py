@@ -12,7 +12,7 @@ class Organization(Place):
     class_code: str | None
     id: list[ExtId]
     standard_industry_class_code: Code | None
-    telecom: list[Telecom] | None
+    telecom: list[Telecom]
     type_code: str | None
 
 
@@ -30,7 +30,7 @@ class OrganizationParser(Parser):
         return Organization(
             name=place.name,
             address=place.address,
-            telecom=TelecomParser(self.raw["telecom"]).parse() if self.raw.get("telecom") else None,
+            telecom=TelecomParser(self.raw.get("telecom")).parse(),
             id=ExtIdParser(self.raw.get("id")).parse(),
             standard_industry_class_code=CodeParser(
                 self.raw.get("standardIndustryClassCode")

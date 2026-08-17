@@ -21,14 +21,10 @@ class EncompassingEncounterParser(Parser):
     def parse(self) -> EncompassingEncounter:
         return EncompassingEncounter(
             code=CodeParser(self.raw.get("code")).parse(),
-            effective_time=EffectiveTimeParser(et).parse()
-            if (et := self.raw.get("effectiveTime"))
-            else None,
+            effective_time=EffectiveTimeParser(self.raw.get("effectiveTime")).parse(),
             id=ExtIdParser(self.raw.get("id")).parse(),
             location=LocationParser(get(self.raw, "location.healthCareFacility")).parse(),
-            responsible_party=AssignedParser(rp).parse(
+            responsible_party=AssignedParser(self.raw.get("responsibleParty")).parse(
                 assigned_key="assignedEntity",
-            )
-            if (rp := self.raw.get("responsibleParty"))
-            else None,
+            ),
         )

@@ -12,7 +12,7 @@ class Telecom:
 
 class TelecomParser(Parser):
     def parse(self) -> list[Telecom]:
-        if isinstance(self.raw, dict) and self.raw.get("@nullFlavor"):
+        if self.raw is None or isinstance(self.raw, dict) and self.raw.get("@nullFlavor"):
             return []
         self.ensure_raw_is_list()
         telecoms = []

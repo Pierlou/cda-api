@@ -13,7 +13,7 @@ class Place:
 class PlaceParser(Parser):
     def parse(self) -> Place:
         p = Place(
-            address=AddressParser(self.raw["addr"]).parse() if self.raw.get("addr") else None,
+            address=AddressParser(self.raw.get("addr")).parse(),
             name=self.raw.get("name"),
         )
         if p.address is None and p.name is None:
