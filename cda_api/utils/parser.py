@@ -8,7 +8,7 @@ class Parser(ABC):
     def __init__(self, raw: dict | list[dict] | None):
         self.raw = raw
 
-    def ensure_raw_is_list(self):
+    def ensure_raw_is_list(self) -> None:
         self.raw = ensure_list(self.raw)
 
     @abstractmethod
@@ -16,10 +16,14 @@ class Parser(ABC):
 
 
 def parse_time(time_str: str) -> datetime:
-    if re.match(r"\d{14}\+\d{4}", time_str):
+    if re.match(r"^\d{14}\+\d{4}$", time_str):
         return datetime.strptime(time_str, "%Y%m%d%H%M%S%z")
-    # *sometimes* dates are badly formatted, trying to recontruct
-    logging.warning(f"{time_str} is not in this expected format, trying to get by")
+    if re.match(r"^\d{14}$", time_str):
+        return datetime.strptime(time_str, "%Y%m%d%H%M%S")
+    if re.match(r"^\d{8}$", time_str):
+        return datetime.strptime(time_str, "%Y%m%d")
+    # *sometimes* dates are badly formatted, trying to reconstruct
+    logging.warning(f"{time_str} is not in the expected format, trying to get by")
     tmp = time_str.split("+")
     if len(tmp) == 2:
         d, tz = tmp

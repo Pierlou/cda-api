@@ -6,8 +6,8 @@ from cda_api.utils import Parser
 @dataclass(frozen=True)
 class Code:
     code: str
-    display_name: str
-    code_system: str
+    display_name: str | None
+    code_system: str | None
     code_system_name: str | None
 
 
@@ -17,7 +17,7 @@ class CodeParser(Parser):
             return None
         return Code(
             code=self.raw["@code"],
-            display_name=self.raw["@displayName"],
-            code_system=self.raw["@codeSystem"],
+            display_name=self.raw.get("@displayName"),
+            code_system=self.raw.get("@codeSystem"),
             code_system_name=self.raw.get("@codeSystemName"),
         )
