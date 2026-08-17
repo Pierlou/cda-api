@@ -9,17 +9,28 @@ from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.utils import Parser, ensure_list, get
 
 
-def get_clean_text(field: str | dict | None) -> str | None:
+def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
     """Helper for headers and rows"""
     if field is None:
         return None
-    text = (
-        field
-        if isinstance(field, str)
-        else field.get("#text") or field.get("content", {}).get("#text")
-    )
-    if text is None:
-        return None
+    if isinstance(field, str):
+        text = field
+    elif isinstance(field, dict):
+        if field.get("#text"):
+            text = field["#text"]
+        elif field.get("content"):
+            if isinstance(field.get("content"), dict):
+                text = field.get("content").get("#text")
+                if text is None:
+                    return None
+            elif isinstance(field.get("content"), list):
+                text = " ".join([t for f in field.get("content") if (t := get_clean_text(f))])
+            else:
+                raise NotImplementedError
+        else:
+            return None
+    else:
+        raise NotImplementedError
     return re.sub(
         " +",
         " ",
