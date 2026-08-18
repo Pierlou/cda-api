@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/astral-sh/uv:python3.14-bookworm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: .venv
+          key: v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint
+        run: |
+          uv run ruff format --check .
+
+      - name: Run tests
+        run: |
+          uv run pytest tests/
+
+  build:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/astral-sh/uv:python3.14-bookworm
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build package
+        run: uv build
+
+      - name: Install built wheel
+        run: |
+          uv venv /tmp/testenv
+          uv pip install --python /tmp/testenv/bin/python dist/*.whl
