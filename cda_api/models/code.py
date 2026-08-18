@@ -13,7 +13,7 @@ class Code:
 
 class CodeParser(Parser):
     def parse(self) -> Code | None:
-        if self.raw is None:
+        if self.raw is None or self.raw.get("@nullFlavor"):
             return None
         return Code(
             code=self.raw["@code"],

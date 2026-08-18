@@ -85,8 +85,8 @@ class Entry:
     text: str | None
     status_code: Code | None
     effective_time: EffectiveTime
-    # target_side_code: Code | None
-    # entry_relationship
+    target_side_code: Code | None
+    # entry_relationship: derived from Entry itself? the structure is very similar
 
 
 class EntryParser(Parser):
@@ -115,6 +115,7 @@ class EntryParser(Parser):
                     text=(entry.get("text", {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),
                     effective_time=EffectiveTimeParser(entry.get("effectiveTime")).parse(),
+                    target_side_code=CodeParser(entry.get("targetSiteParser")).parse(),  # TODO: handle originalText and qualifier
                 )
             )
         return entries
