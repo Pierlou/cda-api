@@ -43,3 +43,9 @@ def ensure_list(val: list | dict | None) -> list[dict]:
     elif isinstance(val, dict):
         return [val]
     return val
+
+
+def first_or_none(maybe_empty_list: list):
+    if maybe_empty_list:
+        return maybe_empty_list[0]
+    return None

@@ -26,7 +26,7 @@ from cda_api.models import (
     ServiceEvent,
     ServiceEventParser,
 )
-from cda_api.utils import get, parse_time
+from cda_api.utils import first_or_none, get, parse_time
 
 
 class ClinicalDocument:
@@ -89,5 +89,65 @@ class ClinicalDocument:
             json.dump(self._raw, f)
 
     def export(self):
-        # TODO: create export from needed keys
-        pass
+        out = {
+            "finess_geo_labo": first_or_none([i.extension for i in self.custodian.id]),
+            "email_labo": first_or_none([tlc.value for tlc in self.custodian.telecom if tlc.type == "email"]),
+            "tel_labo": first_or_none([tlc.value for tlc in self.custodian.telecom if tlc.type == "tel"]),
+            "matricule_ins": first_or_none(
+                [
+                    eid.extension for eid in self.patient.id
+                    if eid.id == "1.2.250.1.213.1.4.8"
+                ]
+            ),
+            "identifiant_local_patient": first_or_none(
+                [
+                    eid.extension for eid in self.patient.id
+                    if eid.id == "1.2.250.1.297.1.1.3021942.49.4"
+                ]
+            ),
+            "nom_naissance_patient": first_or_none(
+                [
+                    f.text for f in self.patient.name.family
+                    if f.qualifier == "BR"
+                ]
+            ),
+            "nom_usuel_patient": first_or_none(
+                [
+                    f.text for f in self.patient.name.family
+                    if f.qualifier == "CL"
+                ]
+            ),
+            "premier_prenom_patient": first_or_none(
+                [
+                    g.text for g in self.patient.name.given  # TODO: question
+                ]
+            ),
+            "sexe_patient": self.patient.administrative_gender_code.code,
+            "date_naissance_patient": self.patient.birth_time.strftime("%Y-%m-%d"),
+            "type_adresse_patient": self.patient.address.use,
+            "commune_naissance_patient": self.patient.birth_place.address.city,   # TODO: question, address.name doesn't exist
+            "code_commune_naissance_patient": self.patient.birth_place.address.county,
+            "numero_rue_patient": self.patient.address.house_number,
+            "nom_rue_patient": self.patient.address.street_name,
+            # "adresse_courante_patient": self.patient.address.street_address_line,
+            "pays_adresse_courante_patient": self.patient.address.country,
+            "code_postal_patient": self.patient.address.postal_code,
+            "commune_patient": self.patient.address.city,
+            "email_patient": first_or_none(
+                [
+                    tlc.value for tlc in self.patient.telecom
+                    if tlc.type == "email"
+                ]
+            ),
+            "telephone_patient": first_or_none(
+                [
+                    tlc.value for tlc in self.patient.telecom
+                    if tlc.type == "tel"
+                ]
+            ),
+            "numero_dossier": (
+                # TODO: always first? documentation_of is a list of serviceEvent
+                i.extension if (i := first_or_none(self.documentation_of[0].id)) else None
+            ),
+        }
+        return out
