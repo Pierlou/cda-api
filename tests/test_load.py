@@ -11,8 +11,9 @@ files = os.listdir("tests/data/")
     "file",
     files,
 )
-def test_load_files(file: str):
-    ClinicalDocument.load("tests/data/" + file)
+def test_load_and_export_files(file: str):
+    doc = ClinicalDocument.load("tests/data/" + file)
+    doc.export()
 
 
 @pytest.mark.parametrize(
