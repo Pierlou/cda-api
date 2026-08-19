@@ -8,7 +8,7 @@ class Address:
     city: str
     country: str | None
     county: str | None
-    house_number: int | None
+    house_number: str | None
     postal_code: str | None
     street_name: str | None
     unit_id: str | None
