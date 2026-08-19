@@ -47,7 +47,7 @@ class ClinicalDocument:
         self.template_id: list[ExtId] = ExtIdParser(get(raw, "templateId")).parse()
         self.confidentiality_code: Code = CodeParser(self._raw["confidentialityCode"]).parse()
         self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
-        self.author: Assigned = AssignedParser(self._raw["author"]).parse(
+        self.author: Assigned | None = AssignedParser(self._raw.get("author")).parse(
             assigned_key="assignedAuthor",
             device_key="assignedAuthoringDevice",
         )
@@ -60,7 +60,7 @@ class ClinicalDocument:
             type_code=self._raw["custodian"].get("@typeCode"),
             class_code=get(self._raw, "custodian.assignedCustodian").get("@classCode"),
         )
-        self.legal_authenticator: Assigned = AssignedParser(self._raw["legalAuthenticator"]).parse(
+        self.legal_authenticator: Assigned | None = AssignedParser(self._raw.get("legalAuthenticator")).parse(
             assigned_key="assignedEntity",
         )
         self.participant: list[Participant] = ParticipantParser(
