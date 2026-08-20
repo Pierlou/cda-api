@@ -10,7 +10,7 @@ from cda_api.models.consumable import Consumable, ConsumableParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.entity import Entity, EntityParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
-from cda_api.utils import Parser, ensure_list, get
+from cda_api.utils import NullObject, Parser, ensure_list, get
 
 
 def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
@@ -78,9 +78,18 @@ class TableParser(Parser):
 
 
 @dataclass(frozen=True)
-class Value:
-    type: str
-    value: str
+class DoseQuantity:
+    low: str
+    high: str
+    unit: str
+
+
+@dataclass(frozen=True)
+class Value(Code):
+    xsi_type: str | None
+    value: str | None
+    unit: str | None
+    original_text: str | None
 
 
 @dataclass(frozen=True)
@@ -99,6 +108,19 @@ class Entry:
     # approach_site_code: str | None  # never really understandable
     negation_ind: str | None  # TODO: cast to bool?
     consumable: Consumable | None
+    dose_quantity: DoseQuantity | None
+    expected_use_time: dict | None
+    interpretation_code: Code | None
+    max_dose_quantity: dict | None  # TODO: make object?
+    precondition: str | None
+    # priority_code: None  # always nullFlavor in examples
+    quantity: str | None
+    # rate_quantity: None  # always nullFlavor in examples
+    reference: dict | None  # TODO: make object?
+    reference_range: str | None
+    repeat_number: str | None
+    route_code: Code | None
+    value: Value | None
     # entry_relationship: derived from Entry itself? the structure is very similar
 
 
@@ -122,6 +144,19 @@ class EntryParser(Parser):
             else:
                 _type = None
                 entry = parent
+            value = None
+            if entry.get("value"):
+                value_code = NullObject()
+                if entry["value"].get("@code"):
+                    value_code = CodeParser(entry["value"]).parse()
+                value = Value(
+                    code=value_code.code,
+                    code_system=value_code.code_system,
+                    code_system_name=value_code.code_system_name,
+                    xsi_type=value.get("@xsi:type"),
+                    value=value.get("@value"),
+                    original_text=value.get("originalText", {}).get("reference", {}).get("@value"),
+                )
             entries.append(
                 Entry(
                     _type=_type,
@@ -139,6 +174,25 @@ class EntryParser(Parser):
                     ).parse(),  # TODO: handle originalText and qualifier
                     negation_ind=entry.get("@negationInd"),
                     consumable=ConsumableParser(entry.get("consumable")).parse(),
+                    dose_quantity=(
+                        DoseQuantity(
+                            low=dq.get("low", {}).get("@value"),
+                            high=dq.get("high", {}).get("@value"),
+                            unit=dq.get("high", {}).get("@unit"),  # assuming low and high have the same unit
+                        )
+                        if (dq := entry.get("doseQuantity"))
+                        else None
+                    ),
+                    expected_use_time=entry.get("expectedUseTime"),
+                    interpretation_code=CodeParser(entry.get("interpretationCode")).parse(),
+                    max_dose_quantity=entry.get("maxDoseQuantity"),
+                    precondition=entry.get("precondition", {}).get("precondition", {}).get("criterion", {}).get("reference", {}).get("@value"),
+                    quantity=entry.get("quantity", {}).get("@value"),
+                    reference=entry.get("reference"),
+                    reference_range=entry.get("referenceRange", {}).get("observationRange", {}).get("text"),
+                    repeat_number=entry.get("repeatNumber", {}).get("@value"),
+                    route_code=CodeParser(entry.get("routeCode")).parse(),
+                    value=value,
                 )
             )
         return entries
