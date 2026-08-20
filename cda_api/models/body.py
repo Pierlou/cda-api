@@ -4,8 +4,11 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from cda_api.models.assigned import Assigned, AssignedParser
 from cda_api.models.code import Code, CodeParser
+from cda_api.models.consumable import Consumable, ConsumableParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
+from cda_api.models.entity import Entity, EntityParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.utils import Parser, ensure_list, get
 
@@ -75,9 +78,16 @@ class TableParser(Parser):
 
 
 @dataclass(frozen=True)
+class Value:
+    type: str
+    value: str
+
+
+@dataclass(frozen=True)
 class Entry:
     _type: str | None
     class_code: str | None
+    type_code: str | None
     mood_code: str | None
     template_id: list[ExtId]
     id: list[ExtId]
@@ -85,7 +95,10 @@ class Entry:
     text: str | None
     status_code: Code | None
     effective_time: EffectiveTime
-    target_side_code: Code | None
+    target_site_code: Code | None
+    # approach_site_code: str | None  # never really understandable
+    negation_ind: str | None  # TODO: cast to bool?
+    consumable: Consumable | None
     # entry_relationship: derived from Entry itself? the structure is very similar
 
 
@@ -96,10 +109,15 @@ class EntryParser(Parser):
         self.ensure_raw_is_list()
         entries = []
         for parent in self.raw:
+            type_code = None
+            template_id = []
             keys = list(parent.keys())
-            if len(keys) == 1:
+            if len(keys) <= 3:  # from experience but might as well be a bad guess
                 # intermediary key, stored as _type
-                _type = keys[0]
+                _type = keys[-1]  # key seems to always be last after code and id
+                type_code = parent.get("@typeCode")
+                if parent.get("templateId"):
+                    template_id += ExtIdParser(ExtIdParser(parent["templateId"]).parse())
                 entry = parent[_type]
             else:
                 _type = None
@@ -108,16 +126,19 @@ class EntryParser(Parser):
                 Entry(
                     _type=_type,
                     class_code=entry.get("@classCode"),
+                    type_code=type_code,
                     mood_code=entry.get("@moodCode"),
-                    template_id=ExtIdParser(entry.get("templateId")).parse(),
+                    template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
                     code=CodeParser(entry.get("@code")).parse(),
                     text=(entry.get("text", {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),
                     effective_time=EffectiveTimeParser(entry.get("effectiveTime")).parse(),
-                    target_side_code=CodeParser(
+                    target_site_code=CodeParser(
                         entry.get("targetSiteParser")
                     ).parse(),  # TODO: handle originalText and qualifier
+                    negation_ind=entry.get("@negationInd"),
+                    consumable=ConsumableParser(entry.get("consumable")).parse(),
                 )
             )
         return entries
@@ -134,6 +155,8 @@ class Section:
     text: str | None
     tables: list[Table]
     entries: list[Entry]
+    author: list[Assigned]
+    informant: list[Entity]
 
 
 class SectionParser(Parser):
@@ -157,6 +180,16 @@ class SectionParser(Parser):
             text=None if text is None else get_clean_text(text),
             tables=([] if tables is None else [TableParser(t).parse() for t in tables]),
             entries=EntryParser(self.raw.get("entry")).parse(),
+            author=[
+                AssignedParser(author).parse(
+                    assigned_key="assignedAuthor",
+                    device_key="assignedAuthoringDevice",
+                )
+                for author in self.raw.get("author", [])
+            ],
+            informant=[
+                EntityParser(i["relatedEntity"]).parse() for i in self.raw.get("informant", [])
+            ],
         )
 
 
