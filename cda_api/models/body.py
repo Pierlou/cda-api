@@ -1,3 +1,4 @@
+from cda_api.models import participant
 import logging
 import re
 from dataclasses import dataclass
@@ -12,7 +13,7 @@ from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.name import Name, NameParser
 from cda_api.models.telecom import Telecom, TelecomParser
-from cda_api.utils import NullObject, Parser, ensure_list, get, parse_time
+from cda_api.utils import NullObject, Parser, ensure_list, get, last_key, parse_time
 
 
 def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
@@ -159,7 +160,9 @@ class ValueParser(Parser):
 
 
 @dataclass(frozen=True)
-class Observation:
+class Relation:
+    type: str  # observation, atc, procedure...
+    type_code: str | None
     class_code: str | None
     mood_code: str | None
     template_id: list[ExtId]
@@ -200,9 +203,10 @@ class Entry:
     repeat_number: str | None
     route_code: Code | None
     value: Value | None
-    component: list[Observation]
+    component: list[Relation]
     subject: Subject | None
-    # entry_relationship: derived from Entry itself? the structure is very similar
+    # participant: 
+    # entry_relationship: nested Entry (etc.), maybe kept as dict? otherwise Relation with more attrs, or have a subclass for entry to allow recursion
 
 
 class EntryParser(Parser):
@@ -262,7 +266,9 @@ class EntryParser(Parser):
                     route_code=CodeParser(entry.get("routeCode")).parse(),
                     value=ValueParser(entry.get("value")).parse(),
                     component=[
-                        Observation(
+                        Relation(
+                            type=lk,
+                            type_code=c.get("@typeCode"),
                             class_code=obs.get("@classCode"),
                             mood_code=obs.get("@moodCode"),
                             template_id=ExtIdParser(obs.get("templateId")).parse(),
@@ -274,7 +280,7 @@ class EntryParser(Parser):
                             value=ValueParser(obs.get("value")).parse(),
                         )
                         for c in entry.get("component", [])
-                        if (obs := c.get("observation"))
+                        if (obs := c.get(lk := last_key(c)))
                     ],
                     subject=SubjectParser(entry.get("subject")).parse(),
                 )

@@ -43,3 +43,9 @@ def ensure_list(val: list | dict | None) -> list[dict]:
     elif isinstance(val, dict):
         return [val]
     return val
+
+
+def last_key(d: dict) -> str | None:
+    if not d:
+        return None
+    return list(d.keys())[-1]
