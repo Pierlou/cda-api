@@ -10,6 +10,7 @@ class EffectiveTime:
     high: datetime | None
     operator: str | None
     xsi_type: str | None
+    value: datetime | None
 
 
 class EffectiveTimeParser(Parser):
@@ -27,6 +28,7 @@ class EffectiveTimeParser(Parser):
             high=self.et_parse_time(self.raw.get("high")),
             operator=operator,
             xsi_type=self.raw.get("@xsi:type"),
+            value=self.et_parse_time(self.raw) if self.raw.get("@value") else None,
         )
 
     @classmethod

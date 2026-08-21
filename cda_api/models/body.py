@@ -1,16 +1,18 @@
 import logging
 import re
 from dataclasses import dataclass
+from datetime import date
 
 import pandas as pd
 
-from cda_api.models.assigned import Assigned, AssignedParser
+from cda_api.models.address import Address, AddressParser
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.consumable import Consumable, ConsumableParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
-from cda_api.models.entity import Entity, EntityParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
-from cda_api.utils import NullObject, Parser, ensure_list, get
+from cda_api.models.name import Name, NameParser
+from cda_api.models.telecom import Telecom, TelecomParser
+from cda_api.utils import NullObject, Parser, ensure_list, get, parse_time
 
 
 def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
@@ -85,11 +87,88 @@ class DoseQuantity:
 
 
 @dataclass(frozen=True)
+class Qualifier:
+    name: Code
+    value: Code
+
+
+@dataclass(frozen=True)
+class Subject:
+    type_code: str | None
+    template_id: list[ExtId]
+    class_code: str | None
+    code: Code
+    address: Address | None
+    name: Name | None
+    telecom: list[Telecom]
+    birth_time: date | None
+
+
+class SubjectParser(Parser):
+    def parse(self) -> Subject | None:
+        if self.raw is None:
+            return None
+        relsubj = self.raw["relatedSubject"]
+        subj = relsubj.get("subject")
+        return Subject(
+            type_code=self.raw.get("@typeCode"),
+            template_id=ExtIdParser(self.raw.get("templateId")).parse(),
+            class_code=relsubj.get("@classCode"),
+            code=CodeParser(relsubj.get("code")).parse(),
+            name=NameParser(subj["name"]).parse() if subj else None,
+            address=AddressParser(self.raw.get("addr")).parse(),
+            telecom=TelecomParser(self.raw.get("telecom")).parse(),
+            birth_time=parse_time(subj["birthTime"]["@value"]) if subj else None,
+        )
+
+
+@dataclass(frozen=True)
 class Value(Code):
     xsi_type: str | None
     value: str | None
     unit: str | None
     original_text: str | None
+    qualifier: Qualifier | None
+
+
+class ValueParser(Parser):
+    def parse(self) -> Value | None:
+        if self.raw is None:
+            return None
+        value_code = NullObject()
+        if self.raw.get("@code"):
+            value_code = CodeParser(self.raw).parse()
+        return Value(
+            code=value_code.code,
+            code_system=value_code.code_system,
+            code_system_name=value_code.code_system_name,
+            xsi_type=self.raw.get("@xsi:type"),
+            display_name=value_code.display_name,
+            value=self.raw.get("@value"),
+            unit=self.raw.get("@unit"),
+            original_text=self.raw.get("originalText", {}).get("reference", {}).get("@value"),
+            qualifier=(
+                Qualifier(
+                    CodeParser(q["name"]).parse(),
+                    CodeParser(q["value"]).parse(),
+                )
+                if (q := self.raw.get("qualifier"))
+                else None
+            ),
+        )
+
+
+@dataclass(frozen=True)
+class Observation:
+    class_code: str | None
+    mood_code: str | None
+    template_id: list[ExtId]
+    id: list[ExtId]
+    code: Code | None
+    text: str | None
+    status_code: Code | None
+    effective_time: EffectiveTime | None
+    value: str
 
 
 @dataclass(frozen=True)
@@ -121,6 +200,8 @@ class Entry:
     repeat_number: str | None
     route_code: Code | None
     value: Value | None
+    component: list[Observation]
+    subject: Subject | None
     # entry_relationship: derived from Entry itself? the structure is very similar
 
 
@@ -139,24 +220,11 @@ class EntryParser(Parser):
                 _type = keys[-1]  # key seems to always be last after code and id
                 type_code = parent.get("@typeCode")
                 if parent.get("templateId"):
-                    template_id += ExtIdParser(ExtIdParser(parent["templateId"]).parse())
+                    template_id += ExtIdParser(parent["templateId"]).parse()
                 entry = parent[_type]
             else:
                 _type = None
                 entry = parent
-            value = None
-            if entry.get("value"):
-                value_code = NullObject()
-                if entry["value"].get("@code"):
-                    value_code = CodeParser(entry["value"]).parse()
-                value = Value(
-                    code=value_code.code,
-                    code_system=value_code.code_system,
-                    code_system_name=value_code.code_system_name,
-                    xsi_type=value.get("@xsi:type"),
-                    value=value.get("@value"),
-                    original_text=value.get("originalText", {}).get("reference", {}).get("@value"),
-                )
             entries.append(
                 Entry(
                     _type=_type,
@@ -192,7 +260,23 @@ class EntryParser(Parser):
                     reference_range=entry.get("referenceRange", {}).get("observationRange", {}).get("text"),
                     repeat_number=entry.get("repeatNumber", {}).get("@value"),
                     route_code=CodeParser(entry.get("routeCode")).parse(),
-                    value=value,
+                    value=ValueParser(entry.get("value")).parse(),
+                    component=[
+                        Observation(
+                            class_code=obs.get("@classCode"),
+                            mood_code=obs.get("@moodCode"),
+                            template_id=ExtIdParser(obs.get("templateId")).parse(),
+                            id=ExtIdParser(obs.get("id")).parse(),
+                            code=CodeParser(obs.get("code")).parse(),
+                            text=obs.get("text", {}).get("reference", {}).get("@value"),
+                            status_code=CodeParser(obs.get("code")).parse(),
+                            effective_time=EffectiveTimeParser(obs.get("effectiveTime")).parse(),
+                            value=ValueParser(obs.get("value")).parse(),
+                        )
+                        for c in entry.get("component", [])
+                        if (obs := c.get("observation"))
+                    ],
+                    subject=SubjectParser(entry.get("subject")).parse(),
                 )
             )
         return entries
@@ -209,8 +293,8 @@ class Section:
     text: str | None
     tables: list[Table]
     entries: list[Entry]
-    author: list[Assigned]
-    informant: list[Entity]
+    # author: list[Assigned]  # never seen but mentionned in doc
+    # informant: list[Entity]  # never seen but mentionned in doc
 
 
 class SectionParser(Parser):
@@ -234,16 +318,6 @@ class SectionParser(Parser):
             text=None if text is None else get_clean_text(text),
             tables=([] if tables is None else [TableParser(t).parse() for t in tables]),
             entries=EntryParser(self.raw.get("entry")).parse(),
-            author=[
-                AssignedParser(author).parse(
-                    assigned_key="assignedAuthor",
-                    device_key="assignedAuthoringDevice",
-                )
-                for author in self.raw.get("author", [])
-            ],
-            informant=[
-                EntityParser(i["relatedEntity"]).parse() for i in self.raw.get("informant", [])
-            ],
         )
 
 
