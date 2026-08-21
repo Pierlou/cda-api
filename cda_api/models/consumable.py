@@ -35,7 +35,8 @@ class ConsumableParser(Parser):
             class_code=self.raw.get("manufacturedProduct", {}).get("@classCode"),
             template_id=ExtIdParser(
                 self.raw.get("manufacturedProduct", {}).get("templateId")
-            ).parse() + ExtIdParser(product.get("templateId")).parse(),
+            ).parse()
+            + ExtIdParser(product.get("templateId")).parse(),
             code=CodeParser(product.get("code")).parse(),
             name=product.get("name"),
             determiner_code=product.get("@determinerCode"),

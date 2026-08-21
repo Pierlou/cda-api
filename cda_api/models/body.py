@@ -205,7 +205,7 @@ class Entry:
     value: Value | None
     component: list[Relation]
     subject: Subject | None
-    # participant: 
+    # participant:
     # entry_relationship: nested Entry (etc.), maybe kept as dict? otherwise Relation with more attrs, or have a subclass for entry to allow recursion
 
 
@@ -250,7 +250,9 @@ class EntryParser(Parser):
                         DoseQuantity(
                             low=dq.get("low", {}).get("@value"),
                             high=dq.get("high", {}).get("@value"),
-                            unit=dq.get("high", {}).get("@unit"),  # assuming low and high have the same unit
+                            unit=dq.get("high", {}).get(
+                                "@unit"
+                            ),  # assuming low and high have the same unit
                         )
                         if (dq := entry.get("doseQuantity"))
                         else None
@@ -258,10 +260,16 @@ class EntryParser(Parser):
                     expected_use_time=entry.get("expectedUseTime"),
                     interpretation_code=CodeParser(entry.get("interpretationCode")).parse(),
                     max_dose_quantity=entry.get("maxDoseQuantity"),
-                    precondition=entry.get("precondition", {}).get("precondition", {}).get("criterion", {}).get("reference", {}).get("@value"),
+                    precondition=entry.get("precondition", {})
+                    .get("precondition", {})
+                    .get("criterion", {})
+                    .get("reference", {})
+                    .get("@value"),
                     quantity=entry.get("quantity", {}).get("@value"),
                     reference=entry.get("reference"),
-                    reference_range=entry.get("referenceRange", {}).get("observationRange", {}).get("text"),
+                    reference_range=entry.get("referenceRange", {})
+                    .get("observationRange", {})
+                    .get("text"),
                     repeat_number=entry.get("repeatNumber", {}).get("@value"),
                     route_code=CodeParser(entry.get("routeCode")).parse(),
                     value=ValueParser(entry.get("value")).parse(),

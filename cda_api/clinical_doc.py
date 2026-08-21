@@ -60,7 +60,9 @@ class ClinicalDocument:
             type_code=self._raw["custodian"].get("@typeCode"),
             class_code=get(self._raw, "custodian.assignedCustodian").get("@classCode"),
         )
-        self.legal_authenticator: Assigned | None = AssignedParser(self._raw.get("legalAuthenticator")).parse(
+        self.legal_authenticator: Assigned | None = AssignedParser(
+            self._raw.get("legalAuthenticator")
+        ).parse(
             assigned_key="assignedEntity",
         )
         self.participant: list[Participant] = ParticipantParser(
