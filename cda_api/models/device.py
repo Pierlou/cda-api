@@ -10,7 +10,7 @@ class Device:
 
 
 class DeviceParser(Parser):
-    def parse(self, key: str) -> Device:
+    def _parse(self, key: str) -> Device:
         return Device(
             manufacturer_model_name=get(self.raw, f"{key}.manufacturerModelName"),
             software_name=get(self.raw, f"{key}.softwareName"),

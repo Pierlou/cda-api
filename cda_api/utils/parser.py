@@ -2,6 +2,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import final
 
 
 class Parser(ABC):
@@ -12,7 +13,15 @@ class Parser(ABC):
         self.raw = ensure_list(self.raw)
 
     @abstractmethod
-    def parse(self): ...
+    def _parse(self): ...
+
+    @final
+    def parse(self):
+        if self.raw is None or (
+            isinstance(self.raw, dict) and self.raw.get("@nullFlavor")
+        ):
+            return None
+        return self._parse()
 
 
 def parse_time(time_str: str) -> datetime:

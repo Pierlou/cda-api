@@ -14,7 +14,7 @@ class Patient(Person):
     birth_place: Place
     birth_time: date
     class_code: str
-    guardian_person: Person
+    guardian_person: Person | None
     id: list[ExtId]
 
 

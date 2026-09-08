@@ -21,14 +21,12 @@ class Assigned(Person, Device):
 
 
 class AssignedParser(Parser):
-    def parse(
+    def _parse(
         self,
         assigned_key: str,
         person_key: str = "assignedPerson",
         device_key: str | None = None,
-    ) -> Assigned | None:
-        if self.raw is None:
-            return None
+    ) -> Assigned:
         assigned = self.raw[assigned_key]
         if assigned.get(person_key):
             person = PersonParser(assigned).parse(key=person_key)

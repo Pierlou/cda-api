@@ -26,9 +26,7 @@ class Consumable:
 
 
 class ConsumableParser(Parser):
-    def parse(self) -> Consumable | None:
-        if self.raw is None:
-            return None
+    def _parse(self) -> Consumable:
         product = self.raw.get("manufacturedProduct", {}).get("manufacturedMaterials", {})
         return Consumable(
             type_code=self.raw.get("@typeCode"),

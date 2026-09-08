@@ -14,9 +14,7 @@ class EffectiveTime:
 
 
 class EffectiveTimeParser(Parser):
-    def parse(self) -> EffectiveTime | None:
-        if self.raw is None:
-            return None
+    def _parse(self) -> EffectiveTime:
         operator = None
         if isinstance(self.raw, list):
             if len(self.raw) != 2 or not all(isinstance(_, dict) for _ in self.raw):
