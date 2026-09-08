@@ -20,6 +20,9 @@ def parse_time(time_str: str) -> datetime:
         return datetime.strptime(time_str, "%Y%m%d%H%M%S%z")
     if re.match(r"^\d{14}$", time_str):
         return datetime.strptime(time_str, "%Y%m%d%H%M%S")
+    if re.match(r"^\d{12}$", time_str):
+        # many cases of no seconds
+        return datetime.strptime(time_str + "00", "%Y%m%d%H%M%S")
     if re.match(r"^\d{8}$", time_str):
         return datetime.strptime(time_str, "%Y%m%d")
     # *sometimes* dates are badly formatted, trying to reconstruct
