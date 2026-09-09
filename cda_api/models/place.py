@@ -11,7 +11,7 @@ class Place:
 
 
 class PlaceParser(Parser):
-    def parse(self) -> Place:
+    def _parse(self) -> Place:
         p = Place(
             address=AddressParser(self.raw.get("addr")).parse(),
             name=self.raw.get("name"),

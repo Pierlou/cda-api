@@ -14,7 +14,7 @@ class Person:
 
 
 class PersonParser(Parser):
-    def parse(self, key: str) -> Person:
+    def _parse(self, key: str) -> Person:
         return Person(
             name=NameParser(self.raw[key]["name"]).parse(),
             address=AddressParser(self.raw.get("addr")).parse(),

@@ -19,7 +19,7 @@ class Patient(Person):
 
 
 class PatientParser(Parser):
-    def parse(self) -> Patient:
+    def _parse(self) -> Patient:
         patient = self.raw["patient"]
         person = PersonParser(self.raw).parse(key="patient")
         return Patient(

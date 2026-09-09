@@ -53,7 +53,7 @@ class Table:
 
 
 class TableParser(Parser):
-    def parse(self) -> Table:
+    def _parse(self) -> Table:
         thead = self.raw.get("thead")
         if isinstance(thead, dict):
             tr = (
@@ -106,9 +106,7 @@ class Subject:
 
 
 class SubjectParser(Parser):
-    def parse(self) -> Subject | None:
-        if self.raw is None:
-            return None
+    def _parse(self) -> Subject | None:
         relsubj = self.raw["relatedSubject"]
         subj = relsubj.get("subject")
         return Subject(
@@ -133,9 +131,7 @@ class Value(Code):
 
 
 class ValueParser(Parser):
-    def parse(self) -> Value | None:
-        if self.raw is None:
-            return None
+    def _parse(self) -> Value | None:
         value_code = NullObject()
         if self.raw.get("@code"):
             value_code = CodeParser(self.raw).parse()
@@ -210,9 +206,9 @@ class Entry:
 
 
 class EntryParser(Parser):
-    def parse(self) -> list[Entry]:
-        if self.raw is None:
-            return []
+    _default_parsing_value = []
+
+    def _parse(self) -> list[Entry]:
         self.ensure_raw_is_list()
         entries = []
         for parent in self.raw:
@@ -312,7 +308,7 @@ class Section:
 
 
 class SectionParser(Parser):
-    def parse(self) -> Section:
+    def _parse(self) -> Section:
         text = self.raw.get("text", "")
         tables = None
         if isinstance(text, dict):
@@ -342,7 +338,7 @@ class Body:
 
 
 class BodyParser(Parser):
-    def parse(self) -> Body:
+    def _parse(self) -> Body:
         if self.raw.get("structuredBody"):
             sections = ensure_list(get(self.raw, "structuredBody.component"))
             return Body(

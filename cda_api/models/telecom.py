@@ -11,9 +11,9 @@ class Telecom:
 
 
 class TelecomParser(Parser):
-    def parse(self) -> list[Telecom]:
-        if self.raw is None or isinstance(self.raw, dict) and self.raw.get("@nullFlavor"):
-            return []
+    _default_parsing_value = []
+
+    def _parse(self) -> list[Telecom]:
         self.ensure_raw_is_list()
         telecoms = []
         for tlc in self.raw:

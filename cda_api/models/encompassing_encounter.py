@@ -18,7 +18,7 @@ class EncompassingEncounter:
 
 
 class EncompassingEncounterParser(Parser):
-    def parse(self) -> EncompassingEncounter:
+    def _parse(self) -> EncompassingEncounter:
         return EncompassingEncounter(
             code=CodeParser(self.raw.get("code")).parse(),
             effective_time=EffectiveTimeParser(self.raw.get("effectiveTime")).parse(),

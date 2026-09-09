@@ -18,7 +18,7 @@ class Name:
 
 
 class NameParser(Parser):
-    def parse(self) -> Name:
+    def _parse(self) -> Name:
         return Name(
             prefix=self.raw.get("prefix"),
             suffix=self.raw.get("suffix"),

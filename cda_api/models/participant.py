@@ -16,9 +16,9 @@ class Participant(Entity):
 
 
 class ParticipantParser(Parser):
-    def parse(self) -> list[Participant]:
-        if self.raw is None:
-            return []
+    _default_parsing_value = []
+
+    def _parse(self) -> list[Participant]:
         self.ensure_raw_is_list()
         participants = []
         for p in self.raw:

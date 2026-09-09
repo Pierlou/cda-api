@@ -17,7 +17,7 @@ class ServiceEvent:
 
 
 class ServiceEventParser(Parser):
-    def parse(self) -> ServiceEvent:
+    def _parse(self) -> ServiceEvent:
         return ServiceEvent(
             code=CodeParser(self.raw.get("code")).parse(),
             class_code=self.raw.get("@classCode"),

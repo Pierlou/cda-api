@@ -6,6 +6,8 @@ from typing import final
 
 
 class Parser(ABC):
+    _default_parsing_value = None
+
     def __init__(self, raw: dict | list[dict] | None):
         self.raw = raw
 
@@ -13,15 +15,15 @@ class Parser(ABC):
         self.raw = ensure_list(self.raw)
 
     @abstractmethod
-    def _parse(self): ...
+    def _parse(self, **kwargs): ...
 
     @final
-    def parse(self):
+    def parse(self, **kwargs):
         if self.raw is None or (
             isinstance(self.raw, dict) and self.raw.get("@nullFlavor")
         ):
-            return None
-        return self._parse()
+            return self._default_parsing_value
+        return self._parse(**kwargs)
 
 
 def parse_time(time_str: str) -> datetime:
