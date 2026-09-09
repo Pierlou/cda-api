@@ -92,7 +92,7 @@ class DoseQuantity:
 
 @dataclass(frozen=True)
 class Qualifier:
-    name: Code
+    name: Code | None
     value: Code
 
 
@@ -149,7 +149,7 @@ class ValueParser(Parser):
             original_text=self.raw.get("originalText", {}).get("reference", {}).get("@value"),
             qualifier=(
                 Qualifier(
-                    CodeParser(q["name"]).parse(),
+                    CodeParser(q.get("name")).parse(),
                     CodeParser(q["value"]).parse(),
                 )
                 if (q := self.raw.get("qualifier"))
