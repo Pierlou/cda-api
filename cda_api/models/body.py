@@ -299,7 +299,7 @@ class Section:
     id: list[ExtId]
     mood_code: str | None
     template_id: list[ExtId]
-    title: str
+    title: str | None
     text: str | None
     tables: list[Table]
     entries: list[Entry]
@@ -323,7 +323,7 @@ class SectionParser(Parser):
             code=CodeParser(self.raw.get("code")).parse(),
             class_code=self.raw.get("@classCode"),
             mood_code=self.raw.get("@moodCode"),
-            title=self.raw["title"],
+            title=self.raw.get("title"),
             id=ExtIdParser(self.raw.get("id")).parse(),
             text=None if text is None else get_clean_text(text),
             tables=([] if tables is None else [TableParser(t).parse() for t in tables]),
