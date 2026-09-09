@@ -1,3 +1,4 @@
+from numpy.f2py.auxfuncs import issigned_long_longarray
 from cda_api.models import participant
 import logging
 import re
@@ -26,7 +27,9 @@ def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
         if field.get("#text"):
             text = field["#text"]
         elif field.get("content"):
-            if isinstance(field.get("content"), dict):
+            if isinstance(field.get("content"), str):
+                text = field.get("content")
+            elif isinstance(field.get("content"), dict):
                 text = field.get("content").get("#text")
                 if text is None:
                     return None
