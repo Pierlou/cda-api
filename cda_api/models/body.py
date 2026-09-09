@@ -73,8 +73,16 @@ class TableParser(Parser):
 
         tbody = self.raw.get("tbody")
         rows: list[list[str | None]] = [
-            [get_clean_text(cell) for cell in row["td"]] for row in ensure_list(tbody["tr"])
+            [
+                # *sometimes* the header is in the body
+                get_clean_text(cell) for cell in row.get("td", row.get("th", []))
+            ]
+            for row in ensure_list(tbody["tr"])
         ]
+        if headers is None and len(rows) > 1:
+            # this pushes the first row as header, not perfect but not harmful
+            headers = rows[0]
+            rows = rows[1:]
         if headers is not None and all(len(headers) == len(row) for row in rows):
             df = pd.DataFrame(rows, columns=headers, dtype=str)
         else:
@@ -117,10 +125,12 @@ class SubjectParser(Parser):
             template_id=ExtIdParser(self.raw.get("templateId")).parse(),
             class_code=relsubj.get("@classCode"),
             code=CodeParser(relsubj.get("code")).parse(),
-            name=NameParser(subj["name"]).parse() if subj else None,
+            name=NameParser(subj.get("name")).parse() if subj else None,
             address=AddressParser(self.raw.get("addr")).parse(),
             telecom=TelecomParser(self.raw.get("telecom")).parse(),
-            birth_time=parse_time(subj["birthTime"]["@value"]) if subj else None,
+            birth_time=parse_time(
+                subj["birthTime"]["@value"]
+            ) if subj and subj.get("birthTime") else None,
         )
 
 
@@ -237,7 +247,7 @@ class EntryParser(Parser):
                     template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
                     code=CodeParser(entry.get("@code")).parse(),
-                    text=(entry.get("text", {}).get("reference") or {}).get("@value"),
+                    text=((entry.get("text") or {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),
                     effective_time=EffectiveTimeParser(entry.get("effectiveTime")).parse(),
                     target_site_code=CodeParser(
@@ -259,7 +269,7 @@ class EntryParser(Parser):
                     expected_use_time=entry.get("expectedUseTime"),
                     interpretation_code=CodeParser(entry.get("interpretationCode")).parse(),
                     max_dose_quantity=entry.get("maxDoseQuantity"),
-                    precondition=entry.get("precondition", {})
+                    precondition=(entry.get("precondition") or {})
                     .get("precondition", {})
                     .get("criterion", {})
                     .get("reference", {})
@@ -286,12 +296,15 @@ class EntryParser(Parser):
                             effective_time=EffectiveTimeParser(obs.get("effectiveTime")).parse(),
                             value=ValueParser(obs.get("value")).parse(),
                         )
-                        for c in entry.get("component", [])
+                        for c in ensure_list((entry.get("component") or []))
                         if (obs := c.get(lk := last_key(c)))
                     ],
                     subject=SubjectParser(entry.get("subject")).parse(),
                 )
             )
+            # except Exception as e:
+            #     breakpoint()
+            #     breakpoint()
         return entries
 
 

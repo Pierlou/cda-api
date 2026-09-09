@@ -51,8 +51,14 @@ class ClinicalDocument:
             assigned_key="assignedAuthor",
             device_key="assignedAuthoringDevice",
         )
-        self.informant: list[Entity] = [
-            EntityParser(i["relatedEntity"]).parse() for i in self._raw.get("informant", [])
+        self.informant: list[Entity | Assigned] = [
+            (
+                EntityParser(i["relatedEntity"]).parse()
+                if i.get("relatedEntity")
+                else AssignedParser(i).parse(
+                    assigned_key="assignedEntity",
+                )
+            ) for i in self._raw.get("informant", [])
         ]
         self.custodian: Organization = OrganizationParser(
             get(self._raw, "custodian.assignedCustodian.representedCustodianOrganization")
