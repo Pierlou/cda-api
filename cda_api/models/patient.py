@@ -34,5 +34,5 @@ class PatientParser(Parser):
             ).date(),
             birth_place=PlaceParser(patient["birthplace"]["place"]).parse(),
             administrative_gender_code=CodeParser(patient["administrativeGenderCode"]).parse(),
-            guardian_person=PersonParser(patient["guardian"]).parse(key="guardianPerson"),
+            guardian_person=PersonParser(patient.get("guardian")).parse(key="guardianPerson"),
         )
