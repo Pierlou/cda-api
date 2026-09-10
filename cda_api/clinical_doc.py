@@ -58,7 +58,7 @@ class ClinicalDocument:
                 else AssignedParser(i).parse(
                     assigned_key="assignedEntity",
                 )[0]
-            ) for i in self._raw.get("informant", [])
+            ) for i in ensure_list(self._raw.get("informant") or [])
         ]
         self.custodian: Organization = OrganizationParser(
             get(self._raw, "custodian.assignedCustodian.representedCustodianOrganization")
