@@ -14,7 +14,7 @@ class Patient(Person):
     birth_place: Place
     birth_time: date
     class_code: str
-    guardian_person: Person | None
+    guardian_persons: list[Person]
     id: list[ExtId]
 
 
@@ -34,5 +34,5 @@ class PatientParser(Parser):
             ).date(),
             birth_place=PlaceParser(patient["birthplace"]["place"]).parse(),
             administrative_gender_code=CodeParser(patient["administrativeGenderCode"]).parse(),
-            guardian_person=PersonParser(patient.get("guardian")).parse(key="guardianPerson"),
+            guardian_persons=PersonParser(patient.get("guardian")).parse(key="guardianPerson"),
         )
