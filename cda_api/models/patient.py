@@ -14,14 +14,14 @@ class Patient(Person):
     birth_place: Place
     birth_time: date
     class_code: str
-    guardian_person: Person
+    guardian_persons: list[Person]
     id: list[ExtId]
 
 
 class PatientParser(Parser):
-    def parse(self) -> Patient:
+    def _parse(self) -> Patient:
         patient = self.raw["patient"]
-        person = PersonParser(self.raw).parse(key="patient")
+        person = PersonParser(self.raw).parse(key="patient")[0]
         return Patient(
             class_code=patient["@classCode"],
             id=ExtIdParser(self.raw["id"]).parse(),
@@ -34,5 +34,5 @@ class PatientParser(Parser):
             ).date(),
             birth_place=PlaceParser(patient["birthplace"]["place"]).parse(),
             administrative_gender_code=CodeParser(patient["administrativeGenderCode"]).parse(),
-            guardian_person=PersonParser(patient["guardian"]).parse(key="guardianPerson"),
+            guardian_persons=PersonParser(patient.get("guardian")).parse(key="guardianPerson"),
         )

@@ -26,7 +26,7 @@ from cda_api.models import (
     ServiceEvent,
     ServiceEventParser,
 )
-from cda_api.utils import get, parse_time
+from cda_api.utils import ensure_list, get, parse_time
 
 
 class ClinicalDocument:
@@ -47,12 +47,19 @@ class ClinicalDocument:
         self.template_id: list[ExtId] = ExtIdParser(get(raw, "templateId")).parse()
         self.confidentiality_code: Code = CodeParser(self._raw["confidentialityCode"]).parse()
         self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
-        self.author: Assigned = AssignedParser(self._raw["author"]).parse(
+        self.author: list[Assigned] = AssignedParser(self._raw.get("author")).parse(
             assigned_key="assignedAuthor",
             device_key="assignedAuthoringDevice",
         )
-        self.informant: list[Entity] = [
-            EntityParser(i["relatedEntity"]).parse() for i in self._raw.get("informant", [])
+        self.informant: list[Entity | Assigned] = [
+            (
+                EntityParser(i["relatedEntity"]).parse()
+                if i.get("relatedEntity")
+                else AssignedParser(i).parse(
+                    assigned_key="assignedEntity",
+                )[0]
+            )
+            for i in ensure_list(self._raw.get("informant") or [])
         ]
         self.custodian: Organization = OrganizationParser(
             get(self._raw, "custodian.assignedCustodian.representedCustodianOrganization")
@@ -60,17 +67,18 @@ class ClinicalDocument:
             type_code=self._raw["custodian"].get("@typeCode"),
             class_code=get(self._raw, "custodian.assignedCustodian").get("@classCode"),
         )
-        self.legal_authenticator: Assigned = AssignedParser(self._raw["legalAuthenticator"]).parse(
+        self.legal_authenticator: list[Assigned] = AssignedParser(
+            self._raw.get("legalAuthenticator")
+        ).parse(
             assigned_key="assignedEntity",
         )
         self.participant: list[Participant] = ParticipantParser(
             self._raw.get("participant")
         ).parse()
-        self.documentation_of: list[ServiceEvent] = (
-            [ServiceEventParser(do["serviceEvent"]).parse()]
-            if isinstance((do := self._raw["documentationOf"]), dict)
-            else [ServiceEventParser(k["serviceEvent"]).parse() for k in do]
-        )
+        self.documentation_of: list[ServiceEvent] = [
+            ServiceEventParser(do["serviceEvent"]).parse()
+            for do in ensure_list(self._raw["documentationOf"])
+        ]
         self.component_of: EncompassingEncounter = EncompassingEncounterParser(
             get(self._raw, "componentOf.encompassingEncounter")
         ).parse()

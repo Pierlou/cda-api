@@ -2,9 +2,12 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import final
 
 
 class Parser(ABC):
+    _default_parsing_value = None
+
     def __init__(self, raw: dict | list[dict] | None):
         self.raw = raw
 
@@ -12,7 +15,13 @@ class Parser(ABC):
         self.raw = ensure_list(self.raw)
 
     @abstractmethod
-    def parse(self): ...
+    def _parse(self, **kwargs): ...
+
+    @final
+    def parse(self, **kwargs):
+        if self.raw is None or (isinstance(self.raw, dict) and self.raw.get("@nullFlavor")):
+            return self._default_parsing_value
+        return self._parse(**kwargs)
 
 
 def parse_time(time_str: str) -> datetime:
@@ -20,6 +29,9 @@ def parse_time(time_str: str) -> datetime:
         return datetime.strptime(time_str, "%Y%m%d%H%M%S%z")
     if re.match(r"^\d{14}$", time_str):
         return datetime.strptime(time_str, "%Y%m%d%H%M%S")
+    if re.match(r"^\d{12}$", time_str):
+        # many cases of no seconds
+        return datetime.strptime(time_str + "00", "%Y%m%d%H%M%S")
     if re.match(r"^\d{8}$", time_str):
         return datetime.strptime(time_str, "%Y%m%d")
     # *sometimes* dates are badly formatted, trying to reconstruct
@@ -43,3 +55,9 @@ def ensure_list(val: list | dict | None) -> list[dict]:
     elif isinstance(val, dict):
         return [val]
     return val
+
+
+def last_key(d: dict) -> str | None:
+    if not d:
+        return None
+    return list(d.keys())[-1]

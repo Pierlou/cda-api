@@ -14,11 +14,11 @@ class EncompassingEncounter:
     effective_time: EffectiveTime
     id: list[ExtId]
     location: Location
-    responsible_party: Assigned | None
+    responsible_party: list[Assigned]
 
 
 class EncompassingEncounterParser(Parser):
-    def parse(self) -> EncompassingEncounter:
+    def _parse(self) -> EncompassingEncounter:
         return EncompassingEncounter(
             code=CodeParser(self.raw.get("code")).parse(),
             effective_time=EffectiveTimeParser(self.raw.get("effectiveTime")).parse(),

@@ -14,9 +14,14 @@ class Person:
 
 
 class PersonParser(Parser):
-    def parse(self, key: str) -> Person:
-        return Person(
-            name=NameParser(self.raw[key]["name"]).parse(),
-            address=AddressParser(self.raw.get("addr")).parse(),
-            telecom=TelecomParser(self.raw.get("telecom")).parse(),
-        )
+    def _parse(self, key: str) -> list[Person]:
+        # in most cases, there will be only one element, so we'll get it directly to end up with a Person object
+        self.ensure_raw_is_list()
+        return [
+            Person(
+                name=NameParser(p[key]["name"]).parse(),
+                address=AddressParser(p.get("addr")).parse(),
+                telecom=TelecomParser(p.get("telecom")).parse(),
+            )
+            for p in self.raw
+        ]

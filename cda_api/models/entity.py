@@ -12,8 +12,10 @@ class Entity(Person):
 
 
 class EntityParser(Parser):
-    def parse(self, person_key: str = "relatedPerson") -> Entity:
-        person = PersonParser(self.raw).parse(key=person_key)
+    def _parse(self, person_key: str = "relatedPerson") -> Entity:
+        if self.raw is None:
+            return None
+        person = PersonParser(self.raw).parse(key=person_key)[0]
         return Entity(
             address=person.address,
             name=person.name,

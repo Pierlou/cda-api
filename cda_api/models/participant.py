@@ -4,7 +4,7 @@ from cda_api.models.code import Code, CodeParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.entity import Entity, EntityParser
 from cda_api.models.organization import Organization, OrganizationParser
-from cda_api.utils import Parser
+from cda_api.utils import NullObject, Parser
 
 
 @dataclass(frozen=True)
@@ -16,22 +16,28 @@ class Participant(Entity):
 
 
 class ParticipantParser(Parser):
-    def parse(self) -> list[Participant]:
-        if self.raw is None:
-            return []
+    _default_parsing_value = []
+
+    def _parse(self) -> list[Participant]:
         self.ensure_raw_is_list()
         participants = []
         for p in self.raw:
             if p.get("associatedPerson"):
                 entity: Entity = EntityParser(p).parse(person_key="associatedPerson")
                 orga: Organization = OrganizationParser(p.get("scopingOrganization")).parse()
-            elif p.get("associatedEntity", {}).get("associatedPerson"):
-                entity: Entity = EntityParser(p["associatedEntity"]).parse(
-                    person_key="associatedPerson"
-                )
-                orga: Organization = OrganizationParser(
-                    p["associatedEntity"].get("scopingOrganization")
-                ).parse()
+            elif p.get("associatedEntity"):
+                entity = NullObject()
+                orga = NullObject()
+                if p["associatedEntity"].get("scopingOrganization"):
+                    orga: Organization = OrganizationParser(
+                        p["associatedEntity"].get("scopingOrganization")
+                    ).parse()
+                if p["associatedEntity"].get("associatedPerson"):
+                    entity: Entity = EntityParser(p["associatedEntity"]).parse(
+                        person_key="associatedPerson"
+                    )
+            else:
+                raise NotImplementedError
             participants.append(
                 Participant(
                     type_code=p.get("@typeCode"),

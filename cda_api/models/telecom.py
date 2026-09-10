@@ -11,17 +11,17 @@ class Telecom:
 
 
 class TelecomParser(Parser):
-    def parse(self) -> list[Telecom]:
-        if self.raw is None or isinstance(self.raw, dict) and self.raw.get("@nullFlavor"):
-            return []
+    _default_parsing_value = []
+
+    def _parse(self) -> list[Telecom]:
         self.ensure_raw_is_list()
         telecoms = []
         for tlc in self.raw:
-            rtype, value = tlc["@value"].split(":")
+            rtype, value = tlc["@value"].split(":", maxsplit=1)
             telecoms.append(
                 Telecom(
                     value=value,
-                    type=rtype.replace("mailto", "email"),
+                    type=rtype,
                     use=tlc.get("@use"),
                 )
             )

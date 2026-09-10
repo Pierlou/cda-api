@@ -19,12 +19,10 @@ class Perfomer(Person):
 
 
 class PerfomerParser(Parser):
-    def parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Perfomer | None:
-        if self.raw is None:
-            return None
+    def _parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Perfomer:
         performer = self.raw[assigned_key]
         person = (
-            PersonParser(performer).parse(key=person_key)
+            PersonParser(performer).parse(key=person_key)[0]
             if person_key in performer
             else NullObject()
         )
