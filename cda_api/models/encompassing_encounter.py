@@ -14,7 +14,7 @@ class EncompassingEncounter:
     effective_time: EffectiveTime
     id: list[ExtId]
     location: Location
-    responsible_party: Assigned | None
+    responsible_party: list[Assigned]
 
 
 class EncompassingEncounterParser(Parser):

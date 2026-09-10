@@ -140,7 +140,13 @@ class Value(Code):
     value: str | None
     unit: str | None
     original_text: str | None
-    qualifier: Qualifier | None
+    qualifier: list[Qualifier]
+
+
+@dataclass(frozen=True)
+class Criterion:
+    code: Code | None
+    value: Value
 
 
 class ValueParser(Parser):
@@ -157,14 +163,13 @@ class ValueParser(Parser):
             value=self.raw.get("@value"),
             unit=self.raw.get("@unit"),
             original_text=self.raw.get("originalText", {}).get("reference", {}).get("@value"),
-            qualifier=(
+            qualifier=[
                 Qualifier(
                     CodeParser(q.get("name")).parse(),
-                    CodeParser(q["value"]).parse(),
+                    ValueParser(q["value"]).parse(),
                 )
-                if (q := self.raw.get("qualifier"))
-                else None
-            ),
+                for q in ensure_list(self.raw.get("qualifier") or [])
+            ],
         )
 
 
@@ -203,7 +208,7 @@ class Entry:
     expected_use_time: dict | None
     interpretation_code: Code | None
     max_dose_quantity: dict | None  # TODO: make object?
-    precondition: str | None
+    precondition: list[Criterion]
     # priority_code: None  # always nullFlavor in examples
     quantity: str | None
     # rate_quantity: None  # always nullFlavor in examples
@@ -238,6 +243,7 @@ class EntryParser(Parser):
             else:
                 _type = None
                 entry = parent
+            # try:
             entries.append(
                 Entry(
                     _type=_type,
@@ -269,11 +275,18 @@ class EntryParser(Parser):
                     expected_use_time=entry.get("expectedUseTime"),
                     interpretation_code=CodeParser(entry.get("interpretationCode")).parse(),
                     max_dose_quantity=entry.get("maxDoseQuantity"),
-                    precondition=(entry.get("precondition") or {})
-                    .get("precondition", {})
-                    .get("criterion", {})
-                    .get("reference", {})
-                    .get("@value"),
+                    precondition=[
+                        Criterion(
+                            code=CodeParser(c.get("code")).parse(),
+                            value=ValueParser(c.get("value")).parse(),
+                        )
+                        for p in ensure_list(entry.get("precondition") or [])
+                        if (c := p.get("criterion"))
+                    ],
+                    # (entry.get("precondition") or {})
+                    # .get("criterion", {})
+                    # .get("reference", {})
+                    # .get("@value"),
                     quantity=entry.get("quantity", {}).get("@value"),
                     reference=entry.get("reference"),
                     reference_range=entry.get("referenceRange", {})
