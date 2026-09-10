@@ -26,7 +26,7 @@ from cda_api.models import (
     ServiceEvent,
     ServiceEventParser,
 )
-from cda_api.utils import get, parse_time
+from cda_api.utils import ensure_list, get, parse_time
 
 
 class ClinicalDocument:
@@ -74,11 +74,10 @@ class ClinicalDocument:
         self.participant: list[Participant] = ParticipantParser(
             self._raw.get("participant")
         ).parse()
-        self.documentation_of: list[ServiceEvent] = (
-            [ServiceEventParser(do["serviceEvent"]).parse()]
-            if isinstance((do := self._raw["documentationOf"]), dict)
-            else [ServiceEventParser(k["serviceEvent"]).parse() for k in do]
-        )
+        self.documentation_of: list[ServiceEvent] = [
+            ServiceEventParser(do["serviceEvent"]).parse()
+            for do in ensure_list(self._raw["documentationOf"])
+        ]
         self.component_of: EncompassingEncounter = EncompassingEncounterParser(
             get(self._raw, "componentOf.encompassingEncounter")
         ).parse()
