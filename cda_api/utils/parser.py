@@ -19,9 +19,7 @@ class Parser(ABC):
 
     @final
     def parse(self, **kwargs):
-        if self.raw is None or (
-            isinstance(self.raw, dict) and self.raw.get("@nullFlavor")
-        ):
+        if self.raw is None or (isinstance(self.raw, dict) and self.raw.get("@nullFlavor")):
             return self._default_parsing_value
         return self._parse(**kwargs)
 

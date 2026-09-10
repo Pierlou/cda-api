@@ -17,9 +17,7 @@ class Organization(Place):
 
 
 class OrganizationParser(Parser):
-    def _parse(
-        self, type_code: str | None = None, class_code: str | None = None
-    ) -> Organization:
+    def _parse(self, type_code: str | None = None, class_code: str | None = None) -> Organization:
         place = (
             PlaceParser(self.raw).parse()
             if self.raw.get("name") or self.raw.get("addr")

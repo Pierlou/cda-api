@@ -75,7 +75,8 @@ class TableParser(Parser):
         rows: list[list[str | None]] = [
             [
                 # *sometimes* the header is in the body
-                get_clean_text(cell) for cell in row.get("td", row.get("th", []))
+                get_clean_text(cell)
+                for cell in row.get("td", row.get("th", []))
             ]
             for row in ensure_list(tbody["tr"])
         ]
@@ -128,9 +129,9 @@ class SubjectParser(Parser):
             name=NameParser(subj.get("name")).parse() if subj else None,
             address=AddressParser(self.raw.get("addr")).parse(),
             telecom=TelecomParser(self.raw.get("telecom")).parse(),
-            birth_time=parse_time(
-                subj["birthTime"]["@value"]
-            ) if subj and subj.get("birthTime") else None,
+            birth_time=parse_time(subj["birthTime"]["@value"])
+            if subj and subj.get("birthTime")
+            else None,
         )
 
 

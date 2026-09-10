@@ -18,6 +18,7 @@ urls: list[str] = [
     if (url := f["download_url"])
 ]
 
+
 @pytest.mark.parametrize(
     "url",
     urls,

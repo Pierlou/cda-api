@@ -16,8 +16,8 @@ class Address:
 
 
 class AddressParser(Parser):
-        # very few cases of self.raw being a list so keeping just Address if possible,
-        # but that means checking the type downstream. Maybe we move to list[Address] anyway at some point?
+    # very few cases of self.raw being a list so keeping just Address if possible,
+    # but that means checking the type downstream. Maybe we move to list[Address] anyway at some point?
     def _parse(self) -> Address | list[Address]:
         if isinstance(self.raw, dict):
             return Address(
