@@ -22,7 +22,7 @@ class PerfomerParser(Parser):
     def _parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Perfomer:
         performer = self.raw[assigned_key]
         person = (
-            PersonParser(performer).parse(key=person_key)
+            PersonParser(performer).parse(key=person_key)[0]
             if person_key in performer
             else NullObject()
         )

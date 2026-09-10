@@ -34,7 +34,7 @@ class AssignedParser(Parser):
         for a in self.raw:
             assigned = a[assigned_key]
             if assigned.get(person_key):
-                person = PersonParser(assigned).parse(key=person_key)
+                person = PersonParser(assigned).parse(key=person_key)[0]
                 device = NullObject()
             elif device_key:
                 device = DeviceParser(assigned).parse(key=device_key)

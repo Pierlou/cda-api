@@ -14,22 +14,14 @@ class Person:
 
 
 class PersonParser(Parser):
-    def _parse(self, key: str) -> Person | list[Person]:
-        # very few cases of self.raw being a list so keeping just Person if possible,
-        # but that means checking the type downstream. Maybe we move to list[Person] anyway at some point?
-        if isinstance(self.raw, dict):
-            return Person(
-                name=NameParser(self.raw[key]["name"]).parse(),
-                address=AddressParser(self.raw.get("addr")).parse(),
-                telecom=TelecomParser(self.raw.get("telecom")).parse(),
+    def _parse(self, key: str) -> list[Person]:
+        # in most cases, there will be only one element, so we'll get it directly to end up with a Person object
+        self.ensure_raw_is_list()
+        return [
+            Person(
+                name=NameParser(p[key]["name"]).parse(),
+                address=AddressParser(p.get("addr")).parse(),
+                telecom=TelecomParser(p.get("telecom")).parse(),
             )
-        elif isinstance(self.raw, list):
-            return [
-                Person(
-                    name=NameParser(p[key]["name"]).parse(),
-                    address=AddressParser(p.get("addr")).parse(),
-                    telecom=TelecomParser(p.get("telecom")).parse(),
-                )
-                for p in self.raw
-            ]
-        raise NotImplementedError
+            for p in self.raw
+        ]
