@@ -44,7 +44,7 @@ class ConsumableParser(Parser):
                     as_specialized_kind=product.get("pharm:asSpecializeKind"),
                     ingredient=product.get("pharm:ingredient"),
                 )
-                if any(k.startswith("pharm:") for k in product.keys())
+                if any(k.startswith("pharm:") for k in product)
                 else None
             ),
         )
