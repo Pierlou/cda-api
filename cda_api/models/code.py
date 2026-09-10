@@ -13,6 +13,12 @@ class Code:
 
 class CodeParser(Parser):
     def _parse(self) -> Code:
+        if "@code" not in self.raw:
+            # handling *very* rare edge case
+            if self.raw.get("translation"):
+                self.raw = self.raw["translation"]
+            else:
+                raise NotImplementedError
         return Code(
             code=self.raw["@code"],
             display_name=self.raw.get("@displayName"),
