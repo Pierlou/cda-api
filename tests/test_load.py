@@ -27,9 +27,9 @@ def test_load__remote_files(url: str):
     name = download(url)
     try:
         ClinicalDocument.load(name)
-        os.remove(name)
+        breakpoint()
     except Exception as e:
-        # known exceptions that we don't want to support
+        # known exceptions that we don't want to support, uncomment to see why
         if e.__repr__() == "KeyError('ClinicalDocument')":
             logging.warning(f"Unexpected document layout for {url.split('/')[-1]}")
             return
@@ -37,6 +37,8 @@ def test_load__remote_files(url: str):
             logging.warning(f"Bad datetime in {url.split('/')[-1]}: {e}")
             return
         raise
+    finally:
+        os.remove(name)
 
 
 @pytest.mark.parametrize(
