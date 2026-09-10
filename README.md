@@ -1,7 +1,7 @@
 # cda-api
 
 A python wrapper to easily load and manipulate CDA files.
-Tests files (in `tests/data/`) are taken from https://github.com/ansforge/interop-exemples-xdm
+Tests files (in `tests/data/`) are taken from https://github.com/ansforge/interop-exemples-xdm, and we also test the examples given in https://github.com/ansforge/interop-outil-cda-testcontenucda3.0-outil-validation-documents-cda/tree/main/ExemplesCDA
 
 ## Use
 The main object is `ClinicalDocument`, which expects a valid CDA XML file to load:
