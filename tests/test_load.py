@@ -5,8 +5,8 @@ import pytest
 import requests
 
 from cda_api import ClinicalDocument
-from .utils import download
 
+from .utils import download
 
 files = os.listdir("tests/data/")
 urls: list[str] = [
@@ -27,7 +27,6 @@ def test_load__remote_files(url: str):
     name = download(url)
     try:
         ClinicalDocument.load(name)
-        breakpoint()
     except Exception as e:
         # known exceptions that we don't want to support, uncomment to see why
         if e.__repr__() == "KeyError('ClinicalDocument')":

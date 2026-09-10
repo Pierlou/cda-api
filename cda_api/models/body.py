@@ -1,5 +1,3 @@
-from numpy.f2py.auxfuncs import issigned_long_longarray
-from cda_api.models import participant
 import logging
 import re
 from dataclasses import dataclass
@@ -310,7 +308,7 @@ class EntryParser(Parser):
                             effective_time=EffectiveTimeParser(obs.get("effectiveTime")).parse(),
                             value=ValueParser(obs.get("value")).parse(),
                         )
-                        for c in ensure_list((entry.get("component") or []))
+                        for c in ensure_list(entry.get("component") or [])
                         if (obs := c.get(lk := last_key(c)))
                     ],
                     subject=SubjectParser(entry.get("subject")).parse(),
