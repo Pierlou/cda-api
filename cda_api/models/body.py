@@ -242,7 +242,6 @@ class EntryParser(Parser):
             else:
                 _type = None
                 entry = parent
-            # try:
             entries.append(
                 Entry(
                     _type=_type,
@@ -282,10 +281,6 @@ class EntryParser(Parser):
                         for p in ensure_list(entry.get("precondition") or [])
                         if (c := p.get("criterion"))
                     ],
-                    # (entry.get("precondition") or {})
-                    # .get("criterion", {})
-                    # .get("reference", {})
-                    # .get("@value"),
                     quantity=entry.get("quantity", {}).get("@value"),
                     reference=entry.get("reference"),
                     reference_range=entry.get("referenceRange", {})
@@ -314,9 +309,6 @@ class EntryParser(Parser):
                     subject=SubjectParser(entry.get("subject")).parse(),
                 )
             )
-            # except Exception as e:
-            #     breakpoint()
-            #     breakpoint()
         return entries
 
 
@@ -368,12 +360,14 @@ class Body:
 class BodyParser(Parser):
     def _parse(self) -> Body:
         if self.raw.get("structuredBody"):
+            # CDA R2 N3
             sections = ensure_list(get(self.raw, "structuredBody.component"))
             return Body(
                 _type="structured",
                 content=[SectionParser(s["section"]).parse() for s in sections],
             )
         elif self.raw.get("nonXMLBody"):
+            # CDA R2 N1
             return Body(
                 _type="nonXML",
                 content=self.raw["nonXMLBody"]["text"],
