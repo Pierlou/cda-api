@@ -14,6 +14,13 @@ class Address:
     unit_id: str | None
     use: str | None
 
+    @property
+    def departement(self) -> str | None:
+        commune = self.county or self.postal_code
+        if commune:
+            return commune[:3] if commune.startswith("97") else commune[:2]
+        return None
+
 
 class AddressParser(Parser):
     # very few cases of self.raw being a list so keeping just Address if possible,
