@@ -26,6 +26,7 @@ from cda_api.models import (
     ServiceEvent,
     ServiceEventParser,
 )
+from cda_api.query import Query
 from cda_api.utils import ensure_list, get, parse_time
 
 
@@ -83,6 +84,9 @@ class ClinicalDocument:
             get(self._raw, "componentOf.encompassingEncounter")
         ).parse()
         self.component: Body = BodyParser(self._raw["component"]).parse()
+
+        # should always be last
+        self.query = Query(self)
 
     @classmethod
     def load(cls, path: str | Path) -> "ClinicalDocument":
