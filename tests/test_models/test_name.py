@@ -6,14 +6,19 @@ from cda_api.models.name import Name, QualifiedName
 @pytest.mark.parametrize(
     "qfd_names, expected",
     [
-        ([
-            QualifiedName(text="Martin", qualifier="BR"),
-            QualifiedName(text="Martin Dupond", qualifier="CL"),
-        ], "Martin"
+        (
+            [
+                QualifiedName(text="Martin", qualifier="BR"),
+                QualifiedName(text="Martin Dupond", qualifier="CL"),
+            ],
+            "Martin",
         ),
-        ([
-            QualifiedName(text="Martin", qualifier="CL"),
-        ], None),
+        (
+            [
+                QualifiedName(text="Martin", qualifier="CL"),
+            ],
+            None,
+        ),
     ],
 )
 def test_usual_family(qfd_names: list[QualifiedName], expected: str | None):
@@ -29,14 +34,19 @@ def test_usual_family(qfd_names: list[QualifiedName], expected: str | None):
 @pytest.mark.parametrize(
     "qfd_names, expected",
     [
-        ([
-            QualifiedName(text="Alice", qualifier="BR"),
-            QualifiedName(text="Alice Jeanne", qualifier="CL"),
-        ], "Alice"
+        (
+            [
+                QualifiedName(text="Alice", qualifier="BR"),
+                QualifiedName(text="Alice Jeanne", qualifier="CL"),
+            ],
+            "Alice",
         ),
-        ([
-            QualifiedName(text="Alice Jeanne", qualifier="CL"),
-        ], None),
+        (
+            [
+                QualifiedName(text="Alice Jeanne", qualifier="CL"),
+            ],
+            None,
+        ),
     ],
 )
 def test_usual_given(qfd_names: list[QualifiedName], expected: str | None):

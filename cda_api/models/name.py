@@ -18,21 +18,11 @@ class Name:
 
     @property
     def usual_family(self):
-        return first_or_none(
-            [
-                f.text for f in self.family
-                if f.qualifier == "BR"
-            ]
-        )
+        return first_or_none([f.text for f in self.family if f.qualifier == "BR"])
 
     @property
     def usual_given(self):
-        return first_or_none(
-            [
-                f.text for f in self.given
-                if f.qualifier == "BR"
-            ]
-        )
+        return first_or_none([f.text for f in self.given if f.qualifier == "BR"])
 
 
 class NameParser(Parser):

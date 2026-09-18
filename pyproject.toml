@@ -37,5 +37,5 @@ local_scheme = "no-local-version"
 pythonpath = ["."]
 
 [tool.ruff]
-lint = { extend-select = ["I"] } # ["I"] is to also sort imports with an isort rule
+lint = { extend-select = ["I"], ignore = ["LOG015"] } # ["I"] is to also sort imports with an isort rule
 line-length = 100
