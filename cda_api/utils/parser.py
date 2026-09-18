@@ -61,3 +61,9 @@ def last_key(d: dict) -> str | None:
     if not d:
         return None
     return list(d.keys())[-1]
+
+
+def first_or_none(maybe_empty_list: list):
+    if maybe_empty_list:
+        return maybe_empty_list[0]
+    return None

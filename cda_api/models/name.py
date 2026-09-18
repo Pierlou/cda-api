@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from cda_api.utils import Parser
+from cda_api.utils import Parser, first_or_none
 
 
 @dataclass(frozen=True)
@@ -15,6 +15,14 @@ class Name:
     given: list[QualifiedName]
     prefix: str | None
     suffix: str | None
+
+    @property
+    def usual_family(self):
+        return first_or_none([f.text for f in self.family if f.qualifier == "BR"])
+
+    @property
+    def usual_given(self):
+        return first_or_none([f.text for f in self.given if f.qualifier == "BR"])
 
 
 class NameParser(Parser):
