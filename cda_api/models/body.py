@@ -222,7 +222,7 @@ class Entry:
     value: Value | None
     component: list[Relation]
     subject: Subject | None
-    performer: list[Perfomer]
+    performers: list[Perfomer]
     # participant:
     entry_relationship: list[Entry]
 
@@ -319,7 +319,7 @@ class EntryParser(Parser):
                         if (obs := c.get(lk := last_key(c)))
                     ],
                     subject=SubjectParser(entry.get("subject")).parse(),
-                    performer=PerfomerParser(entry.get("performer")).parse(
+                    performers=PerfomerParser(entry.get("performer")).parse(
                         assigned_key="assignedEntity",
                     ),
                     entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
