@@ -14,6 +14,7 @@ from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
+from cda_api.models.person import Person, PersonParser
 from cda_api.models.telecom import Telecom, TelecomParser
 from cda_api.utils import NullObject, Parser, ensure_list, get, last_key, parse_time
 
@@ -190,6 +191,34 @@ class Relation:
     value: str
 
 
+# TODO
+# @dataclass(frozen=True)
+# class EntryParticipant(Person):
+#     template_id: list[ExtId]
+#     id: list[ExtId]
+#     code: Code | None
+
+
+# class EntryParticipantParser(Parser):
+#     def _parse(self) -> list[EntryParticipant]:
+#         pp = []
+#         self.ensure_raw_is_list()
+#         for part in self.raw:
+#             participant = part["participantRole"]
+#             person = PersonParser(participant).parse(key="playingEntity")[0]
+#             pp.append(
+#                 EntryParticipant(
+#                     template_id=ExtIdParser(part.get("templateId")).parse(),
+#                     id=ExtIdParser(participant.get("id")).parse(),
+#                     code=CodeParser(participant.get("code")).parse(),
+#                     name=person.name,
+#                     address=person.address,
+#                     telecom=person.telecom,
+#                 )
+#             )
+#         return pp
+
+
 @dataclass(frozen=True)
 class Entry:
     _type: str | None
@@ -223,7 +252,7 @@ class Entry:
     component: list[Relation]
     subject: Subject | None
     performers: list[Perfomer]
-    # participant:
+    # participant: list[EntryParticipant]
     entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
@@ -323,6 +352,7 @@ class EntryParser(Parser):
                         assigned_key="assignedEntity",
                     ),
                     entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
+                    # participant=EntryParticipantParser(entry.get("participant")).parse(),
                 )
             )
         return entries
