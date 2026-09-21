@@ -13,6 +13,7 @@ from cda_api.models.consumable import Consumable, ConsumableParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.name import Name, NameParser
+from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.telecom import Telecom, TelecomParser
 from cda_api.utils import NullObject, Parser, ensure_list, get, last_key, parse_time
 
@@ -221,6 +222,7 @@ class Entry:
     value: Value | None
     component: list[Relation]
     subject: Subject | None
+    performer: list[Perfomer]
     # participant:
     entry_relationship: list[Entry]
 
@@ -317,6 +319,9 @@ class EntryParser(Parser):
                         if (obs := c.get(lk := last_key(c)))
                     ],
                     subject=SubjectParser(entry.get("subject")).parse(),
+                    performer=PerfomerParser(entry.get("performer")).parse(
+                        assigned_key="assignedEntity",
+                    ),
                     entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
                 )
             )
