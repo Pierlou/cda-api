@@ -191,32 +191,39 @@ class Relation:
     value: str
 
 
-# TODO
-# @dataclass(frozen=True)
-# class EntryParticipant(Person):
-#     template_id: list[ExtId]
-#     id: list[ExtId]
-#     code: Code | None
+@dataclass(frozen=True)
+class EntryParticipant(Person):
+    template_id: list[ExtId]
+    type_code: str | None
+    class_code: str | None
+    id: list[ExtId]
+    code: Code | None
 
 
-# class EntryParticipantParser(Parser):
-#     def _parse(self) -> list[EntryParticipant]:
-#         pp = []
-#         self.ensure_raw_is_list()
-#         for part in self.raw:
-#             participant = part["participantRole"]
-#             person = PersonParser(participant).parse(key="playingEntity")[0]
-#             pp.append(
-#                 EntryParticipant(
-#                     template_id=ExtIdParser(part.get("templateId")).parse(),
-#                     id=ExtIdParser(participant.get("id")).parse(),
-#                     code=CodeParser(participant.get("code")).parse(),
-#                     name=person.name,
-#                     address=person.address,
-#                     telecom=person.telecom,
-#                 )
-#             )
-#         return pp
+class EntryParticipantParser(Parser):
+    def _parse(self) -> list[EntryParticipant]:
+        pp = []
+        self.ensure_raw_is_list()
+        for part in self.raw:
+            participant = part["participantRole"] or {}
+            try:
+                person = PersonParser(participant).parse(key="playingEntity")[0]
+            except Exception:
+                logging.error(f"Could not parse participant: {participant}")
+                person = NullObject()
+            pp.append(
+                EntryParticipant(
+                    template_id=ExtIdParser(part.get("templateId")).parse(),
+                    id=ExtIdParser(participant.get("id")).parse(),
+                    code=CodeParser(participant.get("code")).parse(),
+                    type_code=part.get("@typeCode"),
+                    class_code=participant.get("@classCode"),
+                    name=person.name,
+                    address=person.address,
+                    telecom=person.telecom,
+                )
+            )
+        return pp
 
 
 @dataclass(frozen=True)
@@ -252,7 +259,7 @@ class Entry:
     component: list[Relation]
     subject: Subject | None
     performers: list[Perfomer]
-    # participant: list[EntryParticipant]
+    participant: list[EntryParticipant]
     entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
@@ -352,7 +359,7 @@ class EntryParser(Parser):
                         assigned_key="assignedEntity",
                     ),
                     entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
-                    # participant=EntryParticipantParser(entry.get("participant")).parse(),
+                    participant=EntryParticipantParser(entry.get("participant")).parse(),
                 )
             )
         return entries
