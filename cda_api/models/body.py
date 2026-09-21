@@ -104,7 +104,7 @@ class Qualifier:
 
 
 @dataclass(frozen=True)
-class Subject:
+class Subject:  # TODO: derived from Person?
     type_code: str | None
     template_id: list[ExtId]
     class_code: str | None
@@ -142,12 +142,6 @@ class Value(Code):
     qualifier: list[Qualifier]
 
 
-@dataclass(frozen=True)
-class Criterion:
-    code: Code | None
-    value: Value
-
-
 class ValueParser(Parser):
     def _parse(self) -> Value | None:
         value_code = NullObject()
@@ -170,6 +164,12 @@ class ValueParser(Parser):
                 for q in ensure_list(self.raw.get("qualifier") or [])
             ],
         )
+
+
+@dataclass(frozen=True)
+class Criterion:
+    code: Code | None
+    value: Value
 
 
 @dataclass(frozen=True)
@@ -196,6 +196,7 @@ class Entry:
     template_id: list[ExtId]
     id: list[ExtId]
     code: Code | None
+    qualifier: Code | None  # tells what the entry is about, encapsulated in code
     text: str | None
     status_code: Code | None
     effective_time: EffectiveTime
@@ -250,7 +251,8 @@ class EntryParser(Parser):
                     mood_code=entry.get("@moodCode"),
                     template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
-                    code=CodeParser(entry.get("@code")).parse(),
+                    code=CodeParser(entry.get("code")).parse(),
+                    qualifier=CodeParser(entry.get("code", {}).get("qualifier")).parse(),
                     text=((entry.get("text") or {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),
                     effective_time=EffectiveTimeParser(entry.get("effectiveTime")).parse(),
