@@ -5,43 +5,31 @@ from cda_api.utils import first_or_none
 
 if TYPE_CHECKING:
     from cda_api.clinical_doc import ClinicalDocument
-    from cda_api.models.entity import Entity
     from cda_api.models.body import Subject, Value
+    from cda_api.models.entity import Entity
 
 
 class Query:
     """Convenience routes to relevant info"""
+
     def __init__(self, document: "ClinicalDocument"):
         self.doc = document
 
     def iter_entries(self):
         for section in self.doc.component.content:
-            for entry in section.entries:
-                yield entry
+            yield from section.entries
 
     @property
     def mother(self) -> "Entity | None":
-        return first_or_none([
-            i
-            for i in self.doc.informant
-            if i.code.code == "MTH"
-        ])
+        return first_or_none([i for i in self.doc.informant if i.code.code == "MTH"])
 
     @property
     def biological_mother(self) -> "Entity | None":
-        return first_or_none([
-            i
-            for i in self.doc.informant
-            if i.code.code == "NMTH"
-        ])
+        return first_or_none([i for i in self.doc.informant if i.code.code == "NMTH"])
 
     @property
     def father(self) -> "Entity | None":
-        return first_or_none([
-            i
-            for i in self.doc.informant
-            if i.code.code == "FTH"
-        ])
+        return first_or_none([i for i in self.doc.informant if i.code.code == "FTH"])
 
     @staticmethod
     def _is_mother(subj: "Subject | None") -> bool:
@@ -57,46 +45,42 @@ class Query:
 
     @property
     def biological_father(self) -> "Entity | None":
-        return first_or_none([
-            i
-            for i in self.doc.informant
-            if i.code.code == "NFTH"
-        ])
+        return first_or_none([i for i in self.doc.informant if i.code.code == "NFTH"])
 
     @property
     def mother_profession(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_mother(entry.subject) and entry.qualifier and entry.qualifier.code == "ORG-099":
+            if self._is_mother(entry.subject) and entry.match_qualifier("ORG-099"):
                 return entry.value
 
     @property
     def mother_studies_level(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_mother(entry.subject) and entry.qualifier and entry.qualifier.code == "82589-3":
+            if self._is_mother(entry.subject) and entry.match_qualifier("82589-3"):
                 return entry.value
 
     @property
     def mother_occupation(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_mother(entry.subject) and entry.qualifier and entry.qualifier.code == "ORG-075":
+            if self._is_mother(entry.subject) and entry.match_qualifier("ORG-075"):
                 return entry.value
 
     @property
     def father_profession(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_father(entry.subject) and entry.qualifier and entry.qualifier.code == "ORG-099":
+            if self._is_father(entry.subject) and entry.match_qualifier("ORG-099"):
                 return entry.value
 
     @property
     def father_studies_level(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_father(entry.subject) and entry.qualifier and entry.qualifier.code == "82589-3":
+            if self._is_father(entry.subject) and entry.match_qualifier("82589-3"):
                 return entry.value
 
     @property
     def father_occupation(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_father(entry.subject) and entry.qualifier and entry.qualifier.code == "ORG-075":
+            if self._is_father(entry.subject) and entry.match_qualifier("ORG-075"):
                 return entry.value
 
     @property

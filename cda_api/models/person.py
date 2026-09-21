@@ -14,11 +14,9 @@ class Person:
 
     @property
     def home_phone(self) -> str | None:
-        return first_or_none([
-            tlc.value
-            for tlc in self.telecom
-            if tlc.type == "tel" and tlc.use == "H"
-        ])
+        return first_or_none(
+            [tlc.value for tlc in self.telecom if tlc.type == "tel" and tlc.use == "H"]
+        )
 
 
 class PersonParser(Parser):

@@ -222,6 +222,9 @@ class Entry:
     # participant:
     # entry_relationship: nested Entry (etc.), maybe kept as dict? otherwise Relation with more attrs, or have a subclass for entry to allow recursion
 
+    def match_qualifier(self, qual_code: str) -> bool:
+        return self.qualifier and self.qualifier.code == qual_code
+
 
 class EntryParser(Parser):
     _default_parsing_value = []

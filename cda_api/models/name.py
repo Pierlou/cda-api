@@ -26,17 +26,11 @@ class Name:
 
     @property
     def any_given(self) -> str | None:
-        return (
-            self.usual_given
-            or first_or_none([f.text for f in self.given])
-        )
+        return self.usual_given or first_or_none([f.text for f in self.given])
 
     @property
     def any_family(self) -> str | None:
-        return (
-            self.usual_family
-            or first_or_none([f.text for f in self.family])
-        )
+        return self.usual_family or first_or_none([f.text for f in self.family])
 
 
 class NameParser(Parser):
