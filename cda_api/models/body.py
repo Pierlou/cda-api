@@ -225,6 +225,9 @@ class Entry:
     def match_qualifier(self, qual_code: str) -> bool:
         return self.qualifier and self.qualifier.code == qual_code
 
+    def match_code(self, code: str) -> bool:
+        return self.code and self.code.code == code
+
 
 class EntryParser(Parser):
     _default_parsing_value = []

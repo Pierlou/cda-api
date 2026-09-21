@@ -86,13 +86,13 @@ class Query:
     @property
     def mother_alcohol_during_pregnancy(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_mother(entry.subject) and entry.code.code == "74013-4":
+            if self._is_mother(entry.subject) and entry.match_code("74013-4"):
                 return entry.value
 
     @property
     def mother_tobacco_during_pregnancy(self) -> "Value | None":
         for entry in self.iter_entries():
-            if self._is_mother(entry.subject) and entry.code.code == "74011-8":
+            if self._is_mother(entry.subject) and entry.match_code("74011-8"):
                 return entry.value
 
     @property
@@ -106,25 +106,25 @@ class Query:
     @property
     def nb_children_in_household(self) -> "Value | None":
         for entry in self.iter_entries():
-            if entry.qualifier and entry.qualifier.code == "85722-7":
+            if entry.match_qualifier("85722-7"):
                 return entry.value
 
     @property
     def child_diet(self) -> "Value | None":
         for entry in self.iter_entries():
-            if entry.qualifier and entry.qualifier.code == "67704-7":
+            if entry.match_qualifier("67704-7"):
                 return entry.value
 
     @property
     def mother_gravidity(self) -> "Value | None":
         # nb of pregnancies
         for entry in self.iter_entries():
-            if entry.code and entry.code.code == "11996-6":
+            if entry.code and entry.match_code("11996-6"):
                 return entry.value
 
     @property
     def mother_parity(self) -> "Value | None":
         # nb of labours
         for entry in self.iter_entries():
-            if entry.code and entry.code.code == "11977-6":
+            if entry.code and entry.match_code("11977-6"):
                 return entry.value
