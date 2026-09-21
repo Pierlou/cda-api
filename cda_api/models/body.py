@@ -323,6 +323,7 @@ class Section:
     template_id: list[ExtId]
     title: str | None
     text: str | None
+    subject: Subject | None
     tables: list[Table]
     entries: list[Entry]
     # author: list[Assigned]  # never seen but mentionned in doc
@@ -349,6 +350,7 @@ class SectionParser(Parser):
             id=ExtIdParser(self.raw.get("id")).parse(),
             text=None if text is None else get_clean_text(text),
             tables=([] if tables is None else [TableParser(t).parse() for t in tables]),
+            subject=SubjectParser(self.raw.get("subject")).parse(),
             entries=EntryParser(self.raw.get("entry")).parse(),
         )
 
