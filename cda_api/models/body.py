@@ -8,6 +8,7 @@ from datetime import date
 import pandas as pd
 
 from cda_api.models.address import Address, AddressParser
+from cda_api.models.assigned import Assigned, AssignedParser
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.consumable import Consumable, ConsumableParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
@@ -377,7 +378,7 @@ class Section:
     subject: Subject | None
     tables: list[Table]
     entries: list[Entry]
-    # author: list[Assigned]  # never seen but mentionned in doc
+    author: list[Assigned]
     # informant: list[Entity]  # never seen but mentionned in doc
 
 
@@ -402,6 +403,9 @@ class SectionParser(Parser):
             text=None if text is None else get_clean_text(text),
             tables=([] if tables is None else [TableParser(t).parse() for t in tables]),
             subject=SubjectParser(self.raw.get("subject")).parse(),
+            author=AssignedParser(self.raw.get("author")).parse(
+                assigned_key="assignedAuthor",
+            ),
             entries=EntryParser(self.raw.get("entry")).parse(),
         )
 
