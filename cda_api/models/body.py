@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import re
 from dataclasses import dataclass
@@ -220,7 +222,7 @@ class Entry:
     component: list[Relation]
     subject: Subject | None
     # participant:
-    # entry_relationship: nested Entry (etc.), maybe kept as dict? otherwise Relation with more attrs, or have a subclass for entry to allow recursion
+    entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
         return self.qualifier and self.qualifier.code == qual_code
@@ -315,6 +317,7 @@ class EntryParser(Parser):
                         if (obs := c.get(lk := last_key(c)))
                     ],
                     subject=SubjectParser(entry.get("subject")).parse(),
+                    entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
                 )
             )
         return entries
