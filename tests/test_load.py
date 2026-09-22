@@ -23,7 +23,7 @@ urls: list[str] = [
     "url",
     urls,
 )
-def test_load__remote_files(url: str):
+def test_load_remote_files(url: str):
     name = download(url)
     try:
         ClinicalDocument.load(name)
