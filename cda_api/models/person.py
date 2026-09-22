@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from cda_api.models.address import Address, AddressParser
 from cda_api.models.name import Name, NameParser
 from cda_api.models.telecom import Telecom, TelecomParser
-from cda_api.utils import Parser
+from cda_api.utils import Parser, first_or_none
 
 
 @dataclass(frozen=True)
@@ -11,6 +11,12 @@ class Person:
     address: Address | None
     name: Name
     telecom: list[Telecom]
+
+    @property
+    def home_phone(self) -> str | None:
+        return first_or_none(
+            [tlc.value for tlc in self.telecom if tlc.type == "tel" and tlc.use == "H"]
+        )
 
 
 class PersonParser(Parser):

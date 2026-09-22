@@ -8,14 +8,14 @@ from cda_api.models.name import Name, QualifiedName
     [
         (
             [
-                QualifiedName(text="Martin", qualifier="BR"),
-                QualifiedName(text="Martin Dupond", qualifier="CL"),
+                QualifiedName(text="Martin", qualifier="CL"),
+                QualifiedName(text="Martin Dupond", qualifier="BR"),
             ],
             "Martin",
         ),
         (
             [
-                QualifiedName(text="Martin", qualifier="CL"),
+                QualifiedName(text="Martin", qualifier="BR"),
             ],
             None,
         ),
@@ -36,14 +36,14 @@ def test_usual_family(qfd_names: list[QualifiedName], expected: str | None):
     [
         (
             [
-                QualifiedName(text="Alice", qualifier="BR"),
-                QualifiedName(text="Alice Jeanne", qualifier="CL"),
+                QualifiedName(text="Alice", qualifier="CL"),
+                QualifiedName(text="Alice Jeanne", qualifier="BR"),
             ],
             "Alice",
         ),
         (
             [
-                QualifiedName(text="Alice Jeanne", qualifier="CL"),
+                QualifiedName(text="Alice Jeanne", qualifier="BR"),
             ],
             None,
         ),

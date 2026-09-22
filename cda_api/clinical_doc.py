@@ -26,6 +26,7 @@ from cda_api.models import (
     ServiceEvent,
     ServiceEventParser,
 )
+from cda_api.query import Query
 from cda_api.utils import ensure_list, get, parse_time
 
 
@@ -47,11 +48,11 @@ class ClinicalDocument:
         self.template_id: list[ExtId] = ExtIdParser(get(raw, "templateId")).parse()
         self.confidentiality_code: Code = CodeParser(self._raw["confidentialityCode"]).parse()
         self.patient: Patient = PatientParser(self._raw["recordTarget"]["patientRole"]).parse()
-        self.author: list[Assigned] = AssignedParser(self._raw.get("author")).parse(
+        self.authors: list[Assigned] = AssignedParser(self._raw.get("author")).parse(
             assigned_key="assignedAuthor",
             device_key="assignedAuthoringDevice",
         )
-        self.informant: list[Entity | Assigned] = [
+        self.informants: list[Entity | Assigned] = [
             (
                 EntityParser(i["relatedEntity"]).parse()
                 if i.get("relatedEntity")
@@ -67,12 +68,12 @@ class ClinicalDocument:
             type_code=self._raw["custodian"].get("@typeCode"),
             class_code=get(self._raw, "custodian.assignedCustodian").get("@classCode"),
         )
-        self.legal_authenticator: list[Assigned] = AssignedParser(
+        self.legal_authenticators: list[Assigned] = AssignedParser(
             self._raw.get("legalAuthenticator")
         ).parse(
             assigned_key="assignedEntity",
         )
-        self.participant: list[Participant] = ParticipantParser(
+        self.participants: list[Participant] = ParticipantParser(
             self._raw.get("participant")
         ).parse()
         self.documentation_of: list[ServiceEvent] = [
@@ -83,6 +84,9 @@ class ClinicalDocument:
             get(self._raw, "componentOf.encompassingEncounter")
         ).parse()
         self.component: Body = BodyParser(self._raw["component"]).parse()
+
+        # should always be last
+        self.query = Query(self)
 
     @classmethod
     def load(cls, path: str | Path) -> "ClinicalDocument":

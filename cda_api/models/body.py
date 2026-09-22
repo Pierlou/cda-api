@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import re
 from dataclasses import dataclass
@@ -6,11 +8,14 @@ from datetime import date
 import pandas as pd
 
 from cda_api.models.address import Address, AddressParser
+from cda_api.models.assigned import Assigned, AssignedParser
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.consumable import Consumable, ConsumableParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.name import Name, NameParser
+from cda_api.models.performer import Perfomer, PerfomerParser
+from cda_api.models.person import Person, PersonParser
 from cda_api.models.telecom import Telecom, TelecomParser
 from cda_api.utils import NullObject, Parser, ensure_list, get, last_key, parse_time
 
@@ -104,7 +109,7 @@ class Qualifier:
 
 
 @dataclass(frozen=True)
-class Subject:
+class Subject:  # TODO: derived from Person?
     type_code: str | None
     template_id: list[ExtId]
     class_code: str | None
@@ -142,12 +147,6 @@ class Value(Code):
     qualifier: list[Qualifier]
 
 
-@dataclass(frozen=True)
-class Criterion:
-    code: Code | None
-    value: Value
-
-
 class ValueParser(Parser):
     def _parse(self) -> Value | None:
         value_code = NullObject()
@@ -173,6 +172,12 @@ class ValueParser(Parser):
 
 
 @dataclass(frozen=True)
+class Criterion:
+    code: Code | None
+    value: Value
+
+
+@dataclass(frozen=True)
 class Relation:
     type: str  # observation, atc, procedure...
     type_code: str | None
@@ -188,6 +193,41 @@ class Relation:
 
 
 @dataclass(frozen=True)
+class EntryParticipant(Person):
+    template_id: list[ExtId]
+    type_code: str | None
+    class_code: str | None
+    id: list[ExtId]
+    code: Code | None
+
+
+class EntryParticipantParser(Parser):
+    def _parse(self) -> list[EntryParticipant]:
+        pp = []
+        self.ensure_raw_is_list()
+        for part in self.raw:
+            participant = part["participantRole"] or {}
+            try:
+                person = PersonParser(participant).parse(key="playingEntity")[0]
+            except Exception:
+                logging.error(f"Could not parse participant: {participant}")
+                person = NullObject()
+            pp.append(
+                EntryParticipant(
+                    template_id=ExtIdParser(part.get("templateId")).parse(),
+                    id=ExtIdParser(participant.get("id")).parse(),
+                    code=CodeParser(participant.get("code")).parse(),
+                    type_code=part.get("@typeCode"),
+                    class_code=participant.get("@classCode"),
+                    name=person.name,
+                    address=person.address,
+                    telecom=person.telecom,
+                )
+            )
+        return pp
+
+
+@dataclass(frozen=True)
 class Entry:
     _type: str | None
     class_code: str | None
@@ -196,6 +236,7 @@ class Entry:
     template_id: list[ExtId]
     id: list[ExtId]
     code: Code | None
+    qualifier: Code | None  # tells what the entry is about, encapsulated in code
     text: str | None
     status_code: Code | None
     effective_time: EffectiveTime
@@ -218,8 +259,15 @@ class Entry:
     value: Value | None
     component: list[Relation]
     subject: Subject | None
-    # participant:
-    # entry_relationship: nested Entry (etc.), maybe kept as dict? otherwise Relation with more attrs, or have a subclass for entry to allow recursion
+    performers: list[Perfomer]
+    participant: list[EntryParticipant]
+    entry_relationship: list[Entry]
+
+    def match_qualifier(self, qual_code: str) -> bool:
+        return self.qualifier and self.qualifier.code == qual_code
+
+    def match_code(self, code: str) -> bool:
+        return self.code and self.code.code == code
 
 
 class EntryParser(Parser):
@@ -250,7 +298,8 @@ class EntryParser(Parser):
                     mood_code=entry.get("@moodCode"),
                     template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
-                    code=CodeParser(entry.get("@code")).parse(),
+                    code=CodeParser(entry.get("code")).parse(),
+                    qualifier=CodeParser(entry.get("code", {}).get("qualifier")).parse(),
                     text=((entry.get("text") or {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),
                     effective_time=EffectiveTimeParser(entry.get("effectiveTime")).parse(),
@@ -307,6 +356,11 @@ class EntryParser(Parser):
                         if (obs := c.get(lk := last_key(c)))
                     ],
                     subject=SubjectParser(entry.get("subject")).parse(),
+                    performers=PerfomerParser(entry.get("performer")).parse(
+                        assigned_key="assignedEntity",
+                    ),
+                    entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
+                    participant=EntryParticipantParser(entry.get("participant")).parse(),
                 )
             )
         return entries
@@ -321,9 +375,10 @@ class Section:
     template_id: list[ExtId]
     title: str | None
     text: str | None
+    subject: Subject | None
     tables: list[Table]
     entries: list[Entry]
-    # author: list[Assigned]  # never seen but mentionned in doc
+    author: list[Assigned]
     # informant: list[Entity]  # never seen but mentionned in doc
 
 
@@ -347,6 +402,10 @@ class SectionParser(Parser):
             id=ExtIdParser(self.raw.get("id")).parse(),
             text=None if text is None else get_clean_text(text),
             tables=([] if tables is None else [TableParser(t).parse() for t in tables]),
+            subject=SubjectParser(self.raw.get("subject")).parse(),
+            author=AssignedParser(self.raw.get("author")).parse(
+                assigned_key="assignedAuthor",
+            ),
             entries=EntryParser(self.raw.get("entry")).parse(),
         )
 

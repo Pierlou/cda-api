@@ -13,7 +13,7 @@ class ServiceEvent:
     code: Code | None
     effective_time: EffectiveTime | None
     id: list[ExtId]
-    performer: list[Perfomer]
+    performers: list[Perfomer]
 
 
 class ServiceEventParser(Parser):
@@ -23,7 +23,7 @@ class ServiceEventParser(Parser):
             class_code=self.raw.get("@classCode"),
             effective_time=EffectiveTimeParser(self.raw.get("effectiveTime")).parse(),
             id=ExtIdParser(self.raw.get("id")).parse(),
-            performer=PerfomerParser(self.raw.get("performer")).parse(
+            performers=PerfomerParser(self.raw.get("performer")).parse(
                 assigned_key="assignedEntity",
             ),
         )

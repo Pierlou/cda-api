@@ -17,6 +17,11 @@ class CodeParser(Parser):
             # handling *very* rare edge case
             if self.raw.get("translation"):
                 self.raw = self.raw["translation"]
+            # handling coming for a qualifier
+            elif self.raw.get("name"):
+                self.raw = self.raw["name"]
+            elif self.raw.get("value"):
+                self.raw = self.raw["value"]
             else:
                 raise NotImplementedError
         return Code(

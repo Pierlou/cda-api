@@ -17,12 +17,20 @@ class Name:
     suffix: str | None
 
     @property
-    def usual_family(self):
-        return first_or_none([f.text for f in self.family if f.qualifier == "BR"])
+    def usual_family(self) -> str | None:
+        return first_or_none([f.text for f in self.family if f.qualifier == "CL"])
 
     @property
-    def usual_given(self):
-        return first_or_none([f.text for f in self.given if f.qualifier == "BR"])
+    def usual_given(self) -> str | None:
+        return first_or_none([f.text for f in self.given if f.qualifier == "CL"])
+
+    @property
+    def any_given(self) -> str | None:
+        return self.usual_given or first_or_none([f.text for f in self.given])
+
+    @property
+    def any_family(self) -> str | None:
+        return self.usual_family or first_or_none([f.text for f in self.family])
 
 
 class NameParser(Parser):

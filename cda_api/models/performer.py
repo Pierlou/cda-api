@@ -19,23 +19,29 @@ class Perfomer(Person):
 
 
 class PerfomerParser(Parser):
-    def _parse(self, assigned_key: str, person_key: str = "assignedPerson") -> Perfomer:
-        performer = self.raw[assigned_key]
-        person = (
-            PersonParser(performer).parse(key=person_key)[0]
-            if person_key in performer
-            else NullObject()
-        )
-        return Perfomer(
-            type_code=self.raw.get("@typeCode"),
-            template_id=ExtIdParser(self.raw.get("templateId")).parse(),
-            time=EffectiveTimeParser(self.raw.get("time")).parse(),
-            code=CodeParser(self.raw.get("code")).parse(),
-            name=person.name,
-            address=person.address,
-            telecom=person.telecom,
-            id=ExtIdParser(performer["id"]).parse(),
-            represented_organization=OrganizationParser(
-                performer["representedOrganization"]
-            ).parse(),
-        )
+    def _parse(self, assigned_key: str, person_key: str = "assignedPerson") -> list[Perfomer]:
+        self.ensure_raw_is_list()
+        performers = []
+        for perf in self.raw:
+            performer = perf[assigned_key]
+            person = (
+                PersonParser(performer).parse(key=person_key)[0]
+                if person_key in performer
+                else NullObject()
+            )
+            performers.append(
+                Perfomer(
+                    type_code=perf.get("@typeCode"),
+                    template_id=ExtIdParser(perf.get("templateId")).parse(),
+                    time=EffectiveTimeParser(perf.get("time")).parse(),
+                    code=CodeParser(perf.get("code")).parse(),
+                    name=person.name,
+                    address=person.address,
+                    telecom=person.telecom,
+                    id=ExtIdParser(performer["id"]).parse(),
+                    represented_organization=OrganizationParser(
+                        performer["representedOrganization"]
+                    ).parse(),
+                )
+            )
+        return performers
