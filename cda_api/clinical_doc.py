@@ -7,6 +7,8 @@ import xmltodict
 from cda_api.models import (
     Assigned,
     AssignedParser,
+    Authorization,
+    AuthorizationParser,
     Body,
     BodyParser,
     Code,
@@ -54,6 +56,8 @@ class ClinicalDocument:
             assigned_key="assignedAuthor",
             device_key="assignedAuthoringDevice",
         )
+        # Patient's consent
+        self.authorizations: list[Authorization] = AuthorizationParser(self._raw.get("authorization")).parse()
         # Patient's relatives (family, emergency, trustworthy...)
         self.informants: list[Entity | Assigned] = [
             (
