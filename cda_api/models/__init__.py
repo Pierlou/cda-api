@@ -8,6 +8,7 @@ from .ext_id import ExtId, ExtIdParser
 from .organization import Organization, OrganizationParser
 from .participant import Participant, ParticipantParser
 from .patient import Patient, PatientParser
+from .recipient import Recipient, RecipientParser
 from .service_event import ServiceEvent, ServiceEventParser
 
 __all__ = [
@@ -31,6 +32,8 @@ __all__ = [
     "ParticipantParser",
     "Patient",
     "PatientParser",
+    "Recipient",
+    "RecipientParser",
     "ServiceEvent",
     "ServiceEventParser",
 ]

@@ -25,6 +25,8 @@ from cda_api.models import (
     ParticipantParser,
     Patient,
     PatientParser,
+    Recipient,
+    RecipientParser,
     ServiceEvent,
     ServiceEventParser,
 )
@@ -56,8 +58,10 @@ class ClinicalDocument:
             assigned_key="assignedAuthor",
             device_key="assignedAuthoringDevice",
         )
-        # Patient's consent
+        # Patient consent
         self.authorizations: list[Authorization] = AuthorizationParser(self._raw.get("authorization")).parse()
+        # Document recipients
+        self.recipients: list[Recipient] = RecipientParser(self._raw.get("informationRecipient")).parse()
         # Patient's relatives (family, emergency, trustworthy...)
         self.informants: list[Entity | Assigned] = [
             (
