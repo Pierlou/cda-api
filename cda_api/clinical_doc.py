@@ -59,9 +59,13 @@ class ClinicalDocument:
             device_key="assignedAuthoringDevice",
         )
         # Patient consent
-        self.authorizations: list[Authorization] = AuthorizationParser(self._raw.get("authorization")).parse()
+        self.authorizations: list[Authorization] = AuthorizationParser(
+            self._raw.get("authorization")
+        ).parse()
         # Document recipients
-        self.recipients: list[Recipient] = RecipientParser(self._raw.get("informationRecipient")).parse()
+        self.recipients: list[Recipient] = RecipientParser(
+            self._raw.get("informationRecipient")
+        ).parse()
         # Patient's relatives (family, emergency, trustworthy...)
         self.informants: list[Entity | Assigned] = [
             (
