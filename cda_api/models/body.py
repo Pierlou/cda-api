@@ -433,8 +433,9 @@ class SectionParser(Parser):
 
 @dataclass(frozen=True)
 class Body:
-    content: list[Section] | str
+    sections: list[Section]
     _type: str
+    text: str | None
 
 
 class BodyParser(Parser):
@@ -443,13 +444,15 @@ class BodyParser(Parser):
             # CDA R2 N3
             sections = ensure_list(get(self.raw, "structuredBody.component"))
             return Body(
+                sections=[SectionParser(s["section"]).parse() for s in sections],
                 _type="structured",
-                content=[SectionParser(s["section"]).parse() for s in sections],
+                text=None,
             )
         elif self.raw.get("nonXMLBody"):
             # CDA R2 N1
             return Body(
+                sections=[],
                 _type="nonXML",
-                content=self.raw["nonXMLBody"]["text"],
+                text=self.raw["nonXMLBody"]["text"],
             )
         raise NotImplementedError

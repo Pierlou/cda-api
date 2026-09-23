@@ -50,9 +50,7 @@ class Api:
             setattr(self, attr, self.get_value_from_code(code, code_type, entry_condition))
 
     def iter_entries(self):
-        for section in self.doc.component.content:
-            if isinstance(section, str):
-                continue
+        for section in self.doc.component.sections:
             yield from section.entries
 
     def get_value_from_code(self, code: str, code_type: str, entry_condition: Callable | None):
