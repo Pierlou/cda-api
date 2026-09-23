@@ -51,6 +51,8 @@ class Api:
 
     def iter_entries(self):
         for section in self.doc.component.content:
+            if isinstance(section, str):
+                continue
             yield from section.entries
 
     def get_value_from_code(self, code: str, code_type: str, entry_condition: Callable | None):
