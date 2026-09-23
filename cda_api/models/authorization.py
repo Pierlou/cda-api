@@ -18,14 +18,14 @@ class AuthorizationParser(Parser):
         self.ensure_raw_is_list()
         auths = []
         for auth in self.raw:
-            content = auth.get("consent", {})
+            consent = auth.get("consent", {})
             auths.append(
                 Authorization(
                     type_code=auth.get("@typeCode"),
-                    class_code=content.get("@classCode"),
-                    mood_code=content.get("@moodCode"),
-                    code=CodeParser(content.get("code")).parse(),
-                    status_code=CodeParser(content.get("statusCode")).parse(),
+                    class_code=consent.get("@classCode"),
+                    mood_code=consent.get("@moodCode"),
+                    code=CodeParser(consent.get("code")).parse(),
+                    status_code=CodeParser(consent.get("statusCode")).parse(),
                 )
             )
         return auths
