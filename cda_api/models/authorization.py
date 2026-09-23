@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from cda_api.models.code import Code, CodeParser
-from cda_api.utils import Parser, get
+from cda_api.utils import Parser
 
 
 @dataclass(frozen=True)
