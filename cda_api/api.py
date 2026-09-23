@@ -31,6 +31,10 @@ class Api:
     def father(self) -> "Entity | None":
         return first_or_none([i for i in self.doc.informant if i.code.code == "FTH"])
 
+    @property
+    def biological_father(self) -> "Entity | None":
+        return first_or_none([i for i in self.doc.informant if i.code.code == "NFTH"])
+
     @staticmethod
     def _is_mother(subj: "Subject | None") -> bool:
         if subj is None or subj.code is None:
@@ -44,56 +48,52 @@ class Api:
         return subj.code.code in {"NFTH", "FTH"}
 
     @property
-    def biological_father(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "NFTH"])
-
-    @property
-    def mother_profession(self) -> "Value | None":
+    def mother_profession(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_qualifier("ORG-099"):
-                return entry.value
+                return entry.value.display_name
 
     @property
-    def mother_studies_level(self) -> "Value | None":
+    def mother_studies_level(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_qualifier("82589-3"):
-                return entry.value
+                return entry.value.display_name
 
     @property
-    def mother_occupation(self) -> "Value | None":
+    def mother_occupation(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_qualifier("ORG-075"):
-                return entry.value
+                return entry.value.display_name
 
     @property
-    def father_profession(self) -> "Value | None":
+    def father_profession(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_father(entry.subject) and entry.match_qualifier("ORG-099"):
-                return entry.value
+                return entry.value.display_name
 
     @property
-    def father_studies_level(self) -> "Value | None":
+    def father_studies_level(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_father(entry.subject) and entry.match_qualifier("82589-3"):
-                return entry.value
+                return entry.value.display_name
 
     @property
-    def father_occupation(self) -> "Value | None":
+    def father_occupation(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_father(entry.subject) and entry.match_qualifier("ORG-075"):
-                return entry.value
+                return entry.value.display_name
 
     @property
-    def mother_alcohol_during_pregnancy(self) -> "Value | None":
+    def mother_alcohol_during_pregnancy(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_code("74013-4"):
-                return entry.value
+                return entry.value.value
 
     @property
-    def mother_tobacco_during_pregnancy(self) -> "Value | None":
+    def mother_tobacco_during_pregnancy(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_code("74011-8"):
-                return entry.value
+                return entry.value.value
 
     @property
     def mother_birth_date(self) -> date | None:
@@ -104,27 +104,27 @@ class Api:
                 return entry.subject.birth_time
 
     @property
-    def nb_children_in_household(self) -> "Value | None":
+    def nb_children_in_household(self) -> str | None:
         for entry in self.iter_entries():
             if entry.match_qualifier("85722-7"):
-                return entry.value
+                return int(entry.value.value)
 
     @property
-    def child_diet(self) -> "Value | None":
+    def child_diet(self) -> str | None:
         for entry in self.iter_entries():
             if entry.match_qualifier("67704-7"):
-                return entry.value
+                return entry.value.display_name
 
     @property
-    def mother_gravidity(self) -> "Value | None":
+    def mother_gravidity(self) -> int | None:
         # nb of pregnancies
         for entry in self.iter_entries():
             if entry.code and entry.match_code("11996-6"):
-                return entry.value
+                return int(entry.value.value)
 
     @property
-    def mother_parity(self) -> "Value | None":
+    def mother_parity(self) -> str | None:
         # nb of labours
         for entry in self.iter_entries():
             if entry.code and entry.match_code("11977-6"):
-                return entry.value
+                return int(entry.value.value)
