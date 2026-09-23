@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from cda_api.models.entity import Entity
 
 
-class Query:
+class Api:
     """Convenience routes to relevant info"""
 
     def __init__(self, document: "ClinicalDocument"):
