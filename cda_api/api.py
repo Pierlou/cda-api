@@ -5,7 +5,7 @@ from cda_api.utils import first_or_none
 
 if TYPE_CHECKING:
     from cda_api.clinical_doc import ClinicalDocument
-    from cda_api.models.body import Subject, Value
+    from cda_api.models.body import Subject
     from cda_api.models.entity import Entity
 
 
@@ -14,10 +14,23 @@ class Api:
 
     def __init__(self, document: "ClinicalDocument"):
         self.doc = document
+        for attr, code, code_type in [
+            ("nb_children_in_household", "85722-7", "qualifier"),
+            ("child_diet", "67704-7", "qualifier"),
+            ("mother_gravidity", "11996-6", "code"),  # nb of pregnancies
+            ("mother_parity", "11977-6", "code"),  # nb of labours
+            ("mother_premature_babies", "11637-6", "code"),
+        ]:
+            setattr(self, attr, self.get_value_from_code(code, code_type))
 
     def iter_entries(self):
         for section in self.doc.component.content:
             yield from section.entries
+
+    def get_value_from_code(self, code: str, code_type: str = "code"):
+        for entry in self.iter_entries():
+            if getattr(entry, code_type) and getattr(entry, f"match_{code_type}")(code):
+                return entry.value.cast()
 
     @property
     def mother(self) -> "Entity | None":
@@ -51,19 +64,19 @@ class Api:
     def mother_profession(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_qualifier("ORG-099"):
-                return entry.value.display_name
+                return entry.value.cast()
 
     @property
     def mother_studies_level(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_qualifier("82589-3"):
-                return entry.value.display_name
+                return entry.value.cast()
 
     @property
     def mother_occupation(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_qualifier("ORG-075"):
-                return entry.value.display_name
+                return entry.value.cast()
 
     @property
     def father_profession(self) -> str | None:
@@ -75,25 +88,25 @@ class Api:
     def father_studies_level(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_father(entry.subject) and entry.match_qualifier("82589-3"):
-                return entry.value.display_name
+                return entry.value.cast()
 
     @property
     def father_occupation(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_father(entry.subject) and entry.match_qualifier("ORG-075"):
-                return entry.value.display_name
+                return entry.value.cast()
 
     @property
     def mother_alcohol_during_pregnancy(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_code("74013-4"):
-                return entry.value.value
+                return entry.value.cast()
 
     @property
     def mother_tobacco_during_pregnancy(self) -> str | None:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.match_code("74011-8"):
-                return entry.value.value
+                return entry.value.cast()
 
     @property
     def mother_birth_date(self) -> date | None:
@@ -102,29 +115,3 @@ class Api:
         for entry in self.iter_entries():
             if self._is_mother(entry.subject) and entry.code.code in {"74013-4", "74011-8"}:
                 return entry.subject.birth_time
-
-    @property
-    def nb_children_in_household(self) -> str | None:
-        for entry in self.iter_entries():
-            if entry.match_qualifier("85722-7"):
-                return int(entry.value.value)
-
-    @property
-    def child_diet(self) -> str | None:
-        for entry in self.iter_entries():
-            if entry.match_qualifier("67704-7"):
-                return entry.value.display_name
-
-    @property
-    def mother_gravidity(self) -> int | None:
-        # nb of pregnancies
-        for entry in self.iter_entries():
-            if entry.code and entry.match_code("11996-6"):
-                return int(entry.value.value)
-
-    @property
-    def mother_parity(self) -> str | None:
-        # nb of labours
-        for entry in self.iter_entries():
-            if entry.code and entry.match_code("11977-6"):
-                return int(entry.value.value)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
+from typing import Any
 from dataclasses import dataclass
 from datetime import date
 
@@ -145,6 +146,26 @@ class Value(Code):
     unit: str | None
     original_text: str | None
     qualifier: list[Qualifier]
+
+    def cast(self) -> Any:
+        match self.xsi_type:
+            case "BL":
+                match self.value:
+                    case "true":
+                        return True
+                    case "false":
+                        return False
+                    case _:
+                        raise NotImplementedError
+            case "INT":
+                return int(self.value)
+            case "PQ":
+                return self.value + self.unit
+            case "CD":
+                # maybe we'd rather have the code, or both?
+                return self.display_name
+            case _:
+                raise NotImplementedError
 
 
 class ValueParser(Parser):
