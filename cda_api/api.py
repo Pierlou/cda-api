@@ -62,19 +62,19 @@ class Api:
 
     @property
     def mother(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "MTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "MTH"])
 
     @property
     def biological_mother(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "NMTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "NMTH"])
 
     @property
     def father(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "FTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "FTH"])
 
     @property
     def biological_father(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "NFTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "NFTH"])
 
     @staticmethod
     def _is_mother(subj: "Subject | None") -> bool:
