@@ -106,7 +106,7 @@ class DoseQuantity:
 @dataclass(frozen=True)
 class Qualifier:
     name: Code | None
-    value: Code
+    value: Code | None
 
 
 @dataclass(frozen=True)
@@ -184,8 +184,8 @@ class ValueParser(Parser):
             original_text=self.raw.get("originalText", {}).get("reference", {}).get("@value"),
             qualifier=[
                 Qualifier(
-                    CodeParser(q.get("name")).parse(),
-                    ValueParser(q["value"]).parse(),
+                    name=CodeParser(q.get("name")).parse(),
+                    value=CodeParser(q.get("value")).parse(),
                 )
                 for q in ensure_list(self.raw.get("qualifier") or [])
             ],
@@ -257,7 +257,7 @@ class Entry:
     template_id: list[ExtId]
     id: list[ExtId]
     code: Code | None
-    qualifier: Code | None  # tells what the entry is about, encapsulated in code
+    qualifier: Qualifier | None  # tells what the entry is about, encapsulated in code
     text: str | None
     status_code: Code | None
     effective_time: EffectiveTime
@@ -285,7 +285,7 @@ class Entry:
     entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
-        return self.qualifier and self.qualifier.code == qual_code
+        return self.qualifier and self.qualifier.value and self.qualifier.value.code == qual_code
 
     def match_code(self, code: str) -> bool:
         return self.code and self.code.code == code
@@ -320,7 +320,14 @@ class EntryParser(Parser):
                     template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
                     code=CodeParser(entry.get("code")).parse(),
-                    qualifier=CodeParser(entry.get("code", {}).get("qualifier")).parse(),
+                    qualifier=(
+                        Qualifier(
+                            CodeParser(q.get("name")).parse(),
+                            CodeParser(q.get("value")).parse(),
+                        )
+                        if (q := entry.get("code", {}).get("qualifier"))
+                        else None
+                    ),
                     text=((entry.get("text") or {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),
                     effective_time=EffectiveTimeParser(entry.get("effectiveTime")).parse(),
