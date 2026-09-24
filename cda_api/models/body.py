@@ -400,6 +400,7 @@ class Section:
     tables: list[Table]
     entries: list[Entry]
     author: list[Assigned]
+    subsections: list[Section]
     # informant: list[Entity]  # never seen but mentionned in doc
 
 
@@ -428,6 +429,9 @@ class SectionParser(Parser):
                 assigned_key="assignedAuthor",
             ),
             entries=EntryParser(self.raw.get("entry")).parse(),
+            subsections=[
+                SectionParser(c["section"]).parse() for c in ensure_list(self.raw.get("component", []))
+            ],
         )
 
 
