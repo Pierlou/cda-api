@@ -27,6 +27,7 @@ def test_usual_family(qfd_names: list[QualifiedName], expected: str | None):
         given=[QualifiedName(text="Alice", qualifier="BR")],
         prefix=None,
         suffix=None,
+        text=None,
     )
     assert (n.usual_family == expected) if expected is not None else (n.usual_family is None)
 
@@ -55,5 +56,6 @@ def test_usual_given(qfd_names: list[QualifiedName], expected: str | None):
         given=qfd_names,
         prefix=None,
         suffix=None,
+        text=None,
     )
     assert (n.usual_given == expected) if expected is not None else (n.usual_given is None)
