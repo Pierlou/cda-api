@@ -321,6 +321,7 @@ class EntryParser(Parser):
                     id=ExtIdParser(entry.get("id")).parse(),
                     code=CodeParser(entry.get("code")).parse(),
                     qualifier=(
+                        # TODO: not good enough, can be a list
                         Qualifier(
                             CodeParser(q.get("name")).parse(),
                             CodeParser(q.get("value")).parse(),
