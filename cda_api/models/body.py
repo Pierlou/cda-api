@@ -106,7 +106,7 @@ class DoseQuantity:
 @dataclass(frozen=True)
 class Qualifier:
     name: Code | None
-    value: Code
+    value: Code | None
 
 
 @dataclass(frozen=True)
@@ -184,8 +184,8 @@ class ValueParser(Parser):
             original_text=self.raw.get("originalText", {}).get("reference", {}).get("@value"),
             qualifier=[
                 Qualifier(
-                    CodeParser(q.get("name")).parse(),
-                    ValueParser(q["value"]).parse(),
+                    name=CodeParser(q.get("name")).parse(),
+                    value=CodeParser(q.get("value")).parse(),
                 )
                 for q in ensure_list(self.raw.get("qualifier") or [])
             ],
@@ -257,7 +257,7 @@ class Entry:
     template_id: list[ExtId]
     id: list[ExtId]
     code: Code | None
-    qualifier: Code | None  # tells what the entry is about, encapsulated in code
+    qualifier: Qualifier | None  # tells what the entry is about, encapsulated in code
     text: str | None
     status_code: Code | None
     effective_time: EffectiveTime
@@ -285,7 +285,7 @@ class Entry:
     entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
-        return self.qualifier and self.qualifier.code == qual_code
+        return self.qualifier and self.qualifier.value and self.qualifier.value.code == qual_code
 
     def match_code(self, code: str) -> bool:
         return self.code and self.code.code == code
@@ -320,7 +320,15 @@ class EntryParser(Parser):
                     template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
                     code=CodeParser(entry.get("code")).parse(),
-                    qualifier=CodeParser(entry.get("code", {}).get("qualifier")).parse(),
+                    qualifier=(
+                        # TODO: not good enough, can be a list
+                        Qualifier(
+                            CodeParser(q.get("name")).parse(),
+                            CodeParser(q.get("value")).parse(),
+                        )
+                        if (q := entry.get("code", {}).get("qualifier"))
+                        else None
+                    ),
                     text=((entry.get("text") or {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),
                     effective_time=EffectiveTimeParser(entry.get("effectiveTime")).parse(),
@@ -400,6 +408,7 @@ class Section:
     tables: list[Table]
     entries: list[Entry]
     author: list[Assigned]
+    subsections: list[Section]
     # informant: list[Entity]  # never seen but mentionned in doc
 
 
@@ -428,13 +437,17 @@ class SectionParser(Parser):
                 assigned_key="assignedAuthor",
             ),
             entries=EntryParser(self.raw.get("entry")).parse(),
+            subsections=[
+                SectionParser(c["section"]).parse() for c in ensure_list(self.raw.get("component", []))
+            ],
         )
 
 
 @dataclass(frozen=True)
 class Body:
-    content: list[Section] | str
+    sections: list[Section]
     _type: str
+    text: str | None
 
 
 class BodyParser(Parser):
@@ -443,13 +456,15 @@ class BodyParser(Parser):
             # CDA R2 N3
             sections = ensure_list(get(self.raw, "structuredBody.component"))
             return Body(
+                sections=[SectionParser(s["section"]).parse() for s in sections],
                 _type="structured",
-                content=[SectionParser(s["section"]).parse() for s in sections],
+                text=None,
             )
         elif self.raw.get("nonXMLBody"):
             # CDA R2 N1
             return Body(
+                sections=[],
                 _type="nonXML",
-                content=self.raw["nonXMLBody"]["text"],
+                text=self.raw["nonXMLBody"]["text"],
             )
         raise NotImplementedError

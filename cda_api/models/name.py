@@ -15,6 +15,7 @@ class Name:
     given: list[QualifiedName]
     prefix: str | None
     suffix: str | None
+    text: str | None
 
     @property
     def usual_family(self) -> str | None:
@@ -35,11 +36,16 @@ class Name:
 
 class NameParser(Parser):
     def _parse(self) -> Name:
+        if isinstance(self.raw, str):
+            return Name(
+                prefix=[], suffix=[], family=None, given=None, text=self.raw,
+            )
         return Name(
             prefix=self.raw.get("prefix"),
             suffix=self.raw.get("suffix"),
             family=self.family_given_parse(self.raw["family"]),
             given=self.family_given_parse(self.raw["given"]),
+            text=None,
         )
 
     @staticmethod

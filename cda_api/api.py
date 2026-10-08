@@ -50,9 +50,7 @@ class Api:
             setattr(self, attr, self.get_value_from_code(code, code_type, entry_condition))
 
     def iter_entries(self):
-        for section in self.doc.component.content:
-            if isinstance(section, str):
-                continue
+        for section in self.doc.component.sections:
             yield from section.entries
 
     def get_value_from_code(self, code: str, code_type: str, entry_condition: Callable | None):
@@ -64,19 +62,19 @@ class Api:
 
     @property
     def mother(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "MTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "MTH"])
 
     @property
     def biological_mother(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "NMTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "NMTH"])
 
     @property
     def father(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "FTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "FTH"])
 
     @property
     def biological_father(self) -> "Entity | None":
-        return first_or_none([i for i in self.doc.informant if i.code.code == "NFTH"])
+        return first_or_none([i for i in self.doc.informants if i.code.code == "NFTH"])
 
     @staticmethod
     def _is_mother(subj: "Subject | None") -> bool:
