@@ -4,7 +4,7 @@ import logging
 import re
 from typing import Any
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 
 import pandas as pd
 
@@ -118,7 +118,7 @@ class Subject:  # TODO: derived from Person?
     address: Address | None
     name: Name | None
     telecom: list[Telecom]
-    birth_time: date | None
+    birth_time: datetime | None
 
 
 class SubjectParser(Parser):

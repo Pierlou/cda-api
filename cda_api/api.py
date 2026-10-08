@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 from typing import TYPE_CHECKING, Callable
 
 from cda_api.utils import first_or_none
@@ -89,11 +89,12 @@ class Api:
         return subj.code.code in {"NFTH", "FTH"}
 
     @property
-    def mother_birth_date(self) -> date | None:
+    def mother_birth_date(self) -> datetime | None:
         if self._mother_birth_date is None:
-            # for whatever reason, the mother's birth date is in both tobbaco and alcohol
-            # consumption entries but not in the informant part
+            # for whatever reason, the mother's birth date is in some of the sections related to her,
+            # but not in the informant part
             for entry in self.iter_entries():
-                if self._is_mother(entry.subject) and entry.code.code in {"74013-4", "74011-8"}:
+                if self._is_mother(entry.subject) and entry.subject.birth_time:
                     self._mother_birth_date = entry.subject.birth_time
+                    break
         return self._mother_birth_date
