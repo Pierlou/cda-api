@@ -263,7 +263,7 @@ class Entry:
     effective_time: EffectiveTime
     target_site_code: Code | None
     # approach_site_code: str | None  # never really understandable
-    negation_ind: str | None  # TODO: cast to bool?
+    negation_ind: bool | None
     consumable: Consumable | None
     dose_quantity: DoseQuantity | None
     expected_use_time: dict | None
@@ -335,7 +335,7 @@ class EntryParser(Parser):
                     target_site_code=CodeParser(
                         entry.get("targetSiteParser")
                     ).parse(),  # TODO: handle originalText and qualifier
-                    negation_ind=entry.get("@negationInd"),
+                    negation_ind=(ni if (ni := entry.get("@negationInd")) is None else ni == "true"),
                     consumable=ConsumableParser(entry.get("consumable")).parse(),
                     dose_quantity=(
                         DoseQuantity(
