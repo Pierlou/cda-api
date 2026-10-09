@@ -14,6 +14,21 @@ class Api:
 
     def __init__(self, document: "ClinicalDocument"):
         self.doc = document
+        # examination details
+        exam = first_or_none([se for se in self.doc.documentation_of if se.class_code == "ACT"])
+        if exam:
+            self.exam_date = exam.effective_time.any_value
+            self.exam_qual = exam.code.display_name
+            self.exam_med_family_name = exam.performers[0].name.any_family  # TODO: what if more than one?
+            self.exam_med_given_name = exam.performers[0].name.any_given
+            self.exam_place_code = exam.performers[0].represented_organization.standard_industry_class_code.display_name
+        # correspondant
+        corre = first_or_none([part for part in self.doc.participants if part.function_code.code == "CORRE"])
+        if corre:
+            self.treating_med_family_name = corre.name.any_family
+            self.treating_med_given_name = corre.name.any_given
+        
+        # body fields
         self._mother_birth_date = None
         for attr, code, code_type, entry_condition in [
             ("nb_children_in_household", "85722-7", "qualifier", None),
@@ -53,7 +68,9 @@ class Api:
             ("father_occupation", "ORG-075", "qualifier", lambda e: self._is_father(e.subject)),
             ("father_studies_level", "82589-3", "qualifier", lambda e: self._is_father(e.subject)),
         ]:
-            setattr(self, attr, self.get_value_from_code(code, code_type, entry_condition))
+            value = self.get_value_from_code(code, code_type, entry_condition)
+            if value:
+                setattr(self, attr, value)
 
     def iter_entries(self):
         for section in self.doc.component.sections:
