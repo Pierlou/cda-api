@@ -26,8 +26,8 @@ urls: list[str] = [
 def test_load_remote_files(url: str):
     name = download(url)
     try:
-        if "CSE-CS" in url.split("/")[-1]:
-            ClinicalDocument.load(name, doc_type="cse")
+        if "CSE-CS8" in url.split("/")[-1]:
+            ClinicalDocument.load(name, doc_type="cse8")
         else:
             ClinicalDocument.load(name)
     except Exception as e:
@@ -48,8 +48,8 @@ def test_load_remote_files(url: str):
     files,
 )
 def test_load_files(file: str):
-    if "CSE-CS" in file:
-        ClinicalDocument.load("tests/data/" + file, doc_type="cse")
+    if "CSE-CS8" in file:
+        ClinicalDocument.load("tests/data/" + file, doc_type="cse8")
     else:
         ClinicalDocument.load("tests/data/" + file)
 

@@ -160,6 +160,8 @@ class Value(Code):
             case "INT":
                 return int(self.value)
             case "PQ":
+                if self.unit == "{score}":
+                    return self.value
                 return self.value + self.unit
             case "CD":
                 # maybe we'd rather have the code, or both?
@@ -200,7 +202,7 @@ class Criterion:
 
 @dataclass(frozen=True)
 class Relation:
-    type: str  # observation, atc, procedure...
+    type: str  # observation, act, procedure...
     type_code: str | None
     class_code: str | None
     mood_code: str | None
@@ -278,7 +280,7 @@ class Entry:
     repeat_number: str | None
     route_code: Code | None
     value: Value | None
-    component: list[Relation]
+    components: list[Relation]
     subject: Subject | None
     performers: list[Perfomer]
     participant: list[EntryParticipant]
@@ -369,7 +371,7 @@ class EntryParser(Parser):
                     repeat_number=entry.get("repeatNumber", {}).get("@value"),
                     route_code=CodeParser(entry.get("routeCode")).parse(),
                     value=ValueParser(entry.get("value")).parse(),
-                    component=[
+                    components=[
                         Relation(
                             type=lk,
                             type_code=c.get("@typeCode"),
@@ -412,6 +414,15 @@ class Section:
     author: list[Assigned]
     subsections: list[Section]
     # informant: list[Entity]  # never seen but mentionned in doc
+
+    def iter_subsections(self):
+        yield from self.subsections
+
+    def iter_entries(self):
+        yield from self.entries
+
+    def find_subsection(self, code: str) -> Section:
+        return next(sub for sub in self.subsections if sub.code.code == code)
 
 
 class SectionParser(Parser):
