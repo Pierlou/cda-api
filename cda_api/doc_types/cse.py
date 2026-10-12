@@ -34,9 +34,10 @@ class CSE(Api):
                 if part.function_code and part.function_code.code == "CORRE"
             ]
         )
-        self.treating_med_family_name = corre.name.any_family
-        self.treating_med_given_name = corre.name.any_given
-        self.treating_med_qual = corre.code.display_name
+        if corre:
+            self.treating_med_family_name = corre.name.any_family
+            self.treating_med_given_name = corre.name.any_given
+            self.treating_med_qual = corre.code.display_name
 
         # body fields
         self._mother_birth_date = None
