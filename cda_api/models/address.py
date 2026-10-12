@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 
 from cda_api.utils import Parser
 
@@ -20,6 +21,30 @@ class Address:
         if commune:
             return commune[:3] if commune.startswith("97") else commune[:2]
         return None
+
+    @property
+    def street_type_name_split(self) -> tuple[str, str] | None:
+        """If possible, splits the street name into a standardized street type and the rest"""
+        if not self.street_name:
+            return None
+        first, rest = self.street_name.split(" ", maxsplit=1)
+        match first.lower():
+            case "rue":
+                return ("rue", rest.lower())
+            case "avenue":
+                return ("ave", rest.lower())
+            case "av":
+                return ("ave", rest.lower())
+            case "boulevard":
+                return ("bld", rest.lower())
+            case "bd":
+                return ("bld", rest.lower())
+            case "place":
+                return ("pla", rest.lower())
+            case _:
+                logging.warning(f"Unknown street type: {first}")
+                return None
+        
 
 
 class AddressParser(Parser):
