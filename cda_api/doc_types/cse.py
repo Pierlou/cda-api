@@ -18,19 +18,26 @@ class CSE(Api):
         # examination details
         exam = first_or_none([se for se in self.doc.documentation_of if se.class_code == "ACT"])
         self.exam_date = exam.effective_time.any_value
-        self.exam_med_family_name = exam.performers[0].name.any_family  # TODO: what if more than one?
+        self.exam_med_family_name = exam.performers[
+            0
+        ].name.any_family  # TODO: what if more than one?
         self.exam_med_given_name = exam.performers[0].name.any_given
-        self.exam_place_code = exam.performers[0].represented_organization.standard_industry_class_code.display_name
+        self.exam_place_code = exam.performers[
+            0
+        ].represented_organization.standard_industry_class_code.display_name
         self.exam_qual = exam.code.display_name
-        # correspondant
-        corre = first_or_none([
-            part for part in self.doc.participants
-            if part.function_code and part.function_code.code == "CORRE"
-        ])
+        # correspondant
+        corre = first_or_none(
+            [
+                part
+                for part in self.doc.participants
+                if part.function_code and part.function_code.code == "CORRE"
+            ]
+        )
         self.treating_med_family_name = corre.name.any_family
         self.treating_med_given_name = corre.name.any_given
         self.treating_med_qual = corre.code.display_name
-        
+
         # body fields
         self._mother_birth_date = None
         for attr, code, code_type, entry_condition in [

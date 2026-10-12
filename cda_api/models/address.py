@@ -44,7 +44,6 @@ class Address:
             case _:
                 logging.warning(f"Unknown street type: {first}")
                 return None
-        
 
 
 class AddressParser(Parser):

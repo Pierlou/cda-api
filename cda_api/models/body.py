@@ -335,7 +335,9 @@ class EntryParser(Parser):
                     target_site_code=CodeParser(
                         entry.get("targetSiteParser")
                     ).parse(),  # TODO: handle originalText and qualifier
-                    negation_ind=(ni if (ni := entry.get("@negationInd")) is None else ni == "true"),
+                    negation_ind=(
+                        ni if (ni := entry.get("@negationInd")) is None else ni == "true"
+                    ),
                     consumable=ConsumableParser(entry.get("consumable")).parse(),
                     dose_quantity=(
                         DoseQuantity(
@@ -438,7 +440,8 @@ class SectionParser(Parser):
             ),
             entries=EntryParser(self.raw.get("entry")).parse(),
             subsections=[
-                SectionParser(c["section"]).parse() for c in ensure_list(self.raw.get("component", []))
+                SectionParser(c["section"]).parse()
+                for c in ensure_list(self.raw.get("component", []))
             ],
         )
 
