@@ -18,7 +18,7 @@ from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.person import Person, PersonParser
 from cda_api.models.telecom import Telecom, TelecomParser
-from cda_api.utils import NullObject, Parser, ensure_list, get, last_key, parse_time
+from cda_api.utils import NullObject, Parser, ensure_list, first_or_none, get, last_key, parse_time
 
 
 def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
@@ -119,6 +119,12 @@ class Subject:  # TODO: derived from Person?
     name: Name | None
     telecom: list[Telecom]
     birth_time: datetime | None
+    sdtc_id: list[ExtId]
+
+    @property
+    def nir(self) -> str | None:
+        found = first_or_none([eid for eid in self.sdtc_id if eid.id == "1.2.250.1.213.1.4.13"])
+        return None if found is None else found.extension
 
 
 class SubjectParser(Parser):
@@ -136,6 +142,7 @@ class SubjectParser(Parser):
             birth_time=parse_time(subj["birthTime"]["@value"])
             if subj and subj.get("birthTime")
             else None,
+            sdtc_id=ExtIdParser(subj.get("sdtc:id") if subj else None).parse(),
         )
 
 
