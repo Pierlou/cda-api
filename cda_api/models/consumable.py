@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
-from cda_api.utils import Parser
+from cda_api.utils import Parser, ensure_list
 
 
 @dataclass(frozen=True)
@@ -19,10 +19,16 @@ class Consumable:
     class_code: str | None
     template_id: list[ExtId]
     determiner_code: str | None
-    code: Code | None  # TODO: handle originalText
+    codes: list[Code]  # TODO: handle originalText
     name: str
     pharm: Pharm | None
     # lotNumberText: None  # always nullFlavor in examples
+
+    def any_match_code(self, code: str) -> bool:
+        for c in self.codes:
+            if c.code == code:
+                return True
+        return False
 
 
 class ConsumableParser(Parser):
@@ -35,7 +41,10 @@ class ConsumableParser(Parser):
                 self.raw.get("manufacturedProduct", {}).get("templateId")
             ).parse()
             + ExtIdParser(product.get("templateId")).parse(),
-            code=CodeParser(product.get("code")).parse(),
+            codes=[
+                CodeParser(c).parse()
+                for c in self.flatten_codes(ensure_list(product.get("code", {})))
+            ],
             name=product.get("name"),
             determiner_code=product.get("@determinerCode"),
             pharm=(
@@ -48,3 +57,13 @@ class ConsumableParser(Parser):
                 else None
             ),
         )
+
+    @classmethod
+    def flatten_codes(cls, code_list: list[dict]) -> list[dict]:
+        codes = []
+        for code in code_list:
+            if code.get("@code"):
+                codes.append(code)
+            elif code.get("translation"):
+                codes += cls.flatten_codes(ensure_list(code["translation"]))
+        return codes
