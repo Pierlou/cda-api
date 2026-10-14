@@ -258,7 +258,9 @@ class EntryParticipantParser(Parser):
                     name=person.name,
                     address=person.address,
                     telecom=person.telecom,
-                    entity_code=CodeParser((participant.get("playingEntity") or {}).get("code")).parse(),
+                    entity_code=CodeParser(
+                        (participant.get("playingEntity") or {}).get("code")
+                    ).parse(),
                 )
             )
         return pp
@@ -311,6 +313,11 @@ class Entry:
             return next(ent for ent in self.entry_relationship if ent.code.code == code)
         except StopIteration:
             return None
+
+    @property
+    def happened(self):
+        """Convenience around negation_ind syntax"""
+        return None if self.negation_ind is None else not self.negation_ind
 
 
 class EntryParser(Parser):
