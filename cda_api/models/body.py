@@ -258,7 +258,7 @@ class EntryParticipantParser(Parser):
                     name=person.name,
                     address=person.address,
                     telecom=person.telecom,
-                    entity_code=CodeParser(participant.get("playingEntity", {}).get("code")).parse(),
+                    entity_code=CodeParser((participant.get("playingEntity") or {}).get("code")).parse(),
                 )
             )
         return pp
