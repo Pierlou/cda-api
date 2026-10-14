@@ -108,6 +108,11 @@ class Qualifier:
     name: Code | None
     value: Code | None
 
+    @property
+    def code(self):
+        # convenience for find_entry, what always seems to matter is the value's code
+        return self.value.code
+
 
 @dataclass(frozen=True)
 class Subject:  # TODO: derived from Person?
@@ -229,6 +234,7 @@ class EntryParticipant(Person):
     class_code: str | None
     id: list[ExtId]
     code: Code | None
+    entity_code: Code | None
 
 
 class EntryParticipantParser(Parser):
@@ -252,6 +258,7 @@ class EntryParticipantParser(Parser):
                     name=person.name,
                     address=person.address,
                     telecom=person.telecom,
+                    entity_code=CodeParser(participant.get("playingEntity", {}).get("code")).parse(),
                 )
             )
         return pp
@@ -290,7 +297,7 @@ class Entry:
     components: list[Relation]
     subject: Subject | None
     performers: list[Perfomer]
-    participant: list[EntryParticipant]
+    participants: list[EntryParticipant]
     entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
@@ -298,6 +305,12 @@ class Entry:
 
     def match_code(self, code: str) -> bool:
         return self.code and self.code.code == code
+
+    def find_entryrelationship(self, code: str) -> Entry | None:
+        try:
+            return next(ent for ent in self.entry_relationship if ent.code.code == code)
+        except StopIteration:
+            return None
 
 
 class EntryParser(Parser):
@@ -400,7 +413,7 @@ class EntryParser(Parser):
                         assigned_key="assignedEntity",
                     ),
                     entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
-                    participant=EntryParticipantParser(entry.get("participant")).parse(),
+                    participants=EntryParticipantParser(entry.get("participant")).parse(),
                 )
             )
         return entries
@@ -422,14 +435,17 @@ class Section:
     subsections: list[Section]
     # informant: list[Entity]  # never seen but mentionned in doc
 
-    def iter_subsections(self):
-        yield from self.subsections
+    def find_subsection(self, code: str) -> Section | None:
+        try:
+            return next(sub for sub in self.subsections if sub.code.code == code)
+        except StopIteration:
+            return None
 
-    def iter_entries(self):
-        yield from self.entries
-
-    def find_subsection(self, code: str) -> Section:
-        return next(sub for sub in self.subsections if sub.code.code == code)
+    def find_entry(self, code: str, attr: str = "code") -> Entry | None:
+        try:
+            return next(ent for ent in self.entries if getattr(ent, attr).code == code)
+        except StopIteration:
+            return None
 
 
 class SectionParser(Parser):
@@ -469,6 +485,12 @@ class Body:
     sections: list[Section]
     _type: str
     text: str | None
+
+    def find_section(self, code: str) -> Section | None:
+        try:
+            return next(sec for sec in self.sections if sec.code.code == code)
+        except StopIteration:
+            return None
 
 
 class BodyParser(Parser):
