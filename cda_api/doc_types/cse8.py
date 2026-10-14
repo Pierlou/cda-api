@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class CSE8(Api):
-    """Child health certificate specific endpoints"""
+    """8-days-old child health certificate specific endpoints"""
 
     def __init__(self, document: "ClinicalDocument"):
         super().__init__(document)
@@ -42,37 +42,54 @@ class CSE8(Api):
             self.treating_med_qual = corre.code.display_name
 
         # body fields
-        self._mother_birth_date = None
+        # for whatever reason, the mother's birth date and NIR are in some of the sections related to her,
+        # but not in the informant part
+        self.mother_birth_date: datetime | None = None
+        self.mother_nir: str | None = None
+        for entry in self.iter_entries():
+            if self._is_natural_mother(entry.subject) and entry.subject.birth_time:
+                self.mother_birth_date = entry.subject.birth_time
+            if self._is_natural_mother(entry.subject) and entry.subject.nir:
+                self.mother_nir = entry.subject.nir
+            if self.mother_birth_date and self.mother_nir:
+                break
+        self.parent2_link = (
+            entry.subject.code.code
+            if (entry := first_or_none(
+                [e for e in self.iter_entries() if self._is_second_parent(e.subject)]
+            ))
+            else None
+        )
         for attr, code, code_type, entry_condition in [
-            ("mother_profession", "ORG-099", "qualifier", lambda e: self._is_mother(e.subject)),
-            ("mother_profession", "ORG-099", "qualifier", lambda e: self._is_mother(e.subject)),
-            ("mother_occupation", "ORG-075", "qualifier", lambda e: self._is_mother(e.subject)),
-            ("mother_studies_level", "82589-3", "qualifier", lambda e: self._is_mother(e.subject)),
+            ("mother_profession", "ORG-099", "qualifier", lambda e: self._is_natural_mother(e.subject)),
+            ("mother_profession", "ORG-099", "qualifier", lambda e: self._is_natural_mother(e.subject)),
+            ("mother_occupation", "ORG-075", "qualifier", lambda e: self._is_natural_mother(e.subject)),
+            ("mother_studies_level", "82589-3", "qualifier", lambda e: self._is_natural_mother(e.subject)),
             (
-                "father_profession",
+                "parent2_profession",
                 "ORG-099",
                 "qualifier",
-                lambda e: self._is_father(e.subject),
-            ),  # what is the second parent is a woman, or there is no second parent?
-            ("father_occupation", "ORG-075", "qualifier", lambda e: self._is_father(e.subject)),
-            ("father_studies_level", "82589-3", "qualifier", lambda e: self._is_father(e.subject)),
+                lambda e: self._is_second_parent(e.subject),
+            ),  # what if there is no second parent?
+            ("parent2_occupation", "ORG-075", "qualifier", lambda e: self._is_second_parent(e.subject)),
+            ("parent2_studies_level", "82589-3", "qualifier", lambda e: self._is_second_parent(e.subject)),
             (
                 "mother_alcohol_during_pregnancy",
                 "74013-4",
                 "code",
-                lambda e: self._is_mother(e.subject),
+                lambda e: self._is_natural_mother(e.subject),
             ),
             (
                 "mother_tobacco_during_pregnancy",
                 "74011-8",
                 "code",
-                lambda e: self._is_mother(e.subject),
+                lambda e: self._is_natural_mother(e.subject),
             ),
             (
                 "mother_other_addictions",
                 "GEN-092.01.04",
                 "qualifier",
-                lambda e: self._is_mother(e.subject),
+                lambda e: self._is_natural_mother(e.subject),
             ),
             ("nb_children_in_household", "85722-7", "qualifier", None),
             ("mother_gravidity", "11996-6", "code", None),  # nb of pregnancies
@@ -104,15 +121,13 @@ class CSE8(Api):
             ("birth_method", "57071-3", "code", None),
             ("caesarean_cause", "MED-600", "code", None),
             ("child_diet", "67704-7", "qualifier", None),
+            ("child_tuberculosis_risk", "MED-283", "qualifier", None),
         ]:
             value = self.get_value_from_code(code, code_type, entry_condition)
             if value is not None:
                 setattr(self, attr, value)
 
-        newborn_infos = next(
-            sec for sec in self.doc.component.sections
-            if sec.code.code == "57075-4"
-        )
+        newborn_infos = self.doc.component.find_section("57075-4")
         vital_signs = (
             newborn_infos
             .find_subsection("29545-1")
@@ -126,29 +141,82 @@ class CSE8(Api):
                 case "8302-2":
                     self.child_height = component.value.cast()
                 case "8287-5":
-                    self.cranial_perimeter = component.value.cast()
+                    self.child_cranial_perimeter = component.value.cast()
                 case "9272-6":
-                    self.apgar_1mn = component.value.cast()
+                    self.child_apgar_1mn = component.value.cast()
                 case "9274-2":
-                    self.apgar_5mn = component.value.cast()
+                    self.child_apgar_5mn = component.value.cast()
                 case "9271-8":
-                    self.apgar_10mn = component.value.cast()
+                    self.child_apgar_10mn = component.value.cast()
 
         first_week_pathologies = newborn_infos.find_subsection("11450-4").entries[0]
         for relat in first_week_pathologies.entry_relationship:
             match relat.value.code:
                 case "P22.9":
-                    self.respiratory_distress = not relat.negation_ind
+                    self.child_respiratory_distress = None if relat.negation_ind is None else not relat.negation_ind
                 case "MED-276":
-                    self.antibiotherapy_more_than_48h = not relat.negation_ind
+                    self.child_antibiotherapy_more_than_48h = None if relat.negation_ind is None else not relat.negation_ind
                 case "G96.9":
-                    self.neurological_pathology = not relat.negation_ind
+                    self.child_neurological_pathology = None if relat.negation_ind is None else not relat.negation_ind
                 case "73994005":
-                    self.surgical_emergency = not relat.negation_ind
+                    self.child_surgical_emergency = None if relat.negation_ind is None else not relat.negation_ind
                 case "GEN-092.01.11":
-                    self.other_first_week_pathology = not relat.negation_ind
-        
+                    self.child_other_first_week_pathology = None if relat.negation_ind is None else not relat.negation_ind
 
+        gestures_deafness = newborn_infos.find_subsection("29554-3")
+        self.specialized_tech_gestures = None if (e := gestures_deafness.find_entry("MED-174")).negation_ind is None else not e.negation_ind
+        deafness_screening = gestures_deafness.find_entry("MED-1304")
+        self.deafness_screening_done = None if deafness_screening.negation_ind is None else not deafness_screening.negation_ind
+        self.deafness_screening_result = deafness_screening.find_entryrelationship("MED-1305").value.cast()
+
+        treatments = newborn_infos.find_subsection("18610-6")
+        vrs_immunisation = next(
+            e for e in treatments.entries
+            if e.code.code == "DRUG"
+            and e.consumable.code.code == "J06BD08"
+        )
+        self.vrs_immunisation = not vrs_immunisation.negation_ind
+        hepB_immunoglobin = next(
+            e for e in treatments.entries
+            if e.code.code == "DRUG"
+            and e.consumable.code.code == "J06BB04"
+        )
+        self.hepB_immunoglobin = not hepB_immunoglobin.negation_ind
+
+        transfert = first_or_none([
+            sec for sec in newborn_infos.subsections if sec.code.code == "42545-4" and sec.find_entry("ORG-081")
+        ])
+        if transfert is not None:
+            self.transfert = True
+            self.transfert_type = transfert.find_entry("ORG-081").value.cast()
+            transfert_infos = transfert.find_entry("80413-8")
+            self.transfert_dest_type = transfert_infos.qualifier.value.display_name
+            self.transfert_dest_service = transfert_infos.participants[0].entity_code.display_name
+            self.transfert_dest_name = transfert_infos.participants[0].name.display
+        else:
+            self.transfert = False
+            self.transfert_type = None
+            self.transfert_dest_type = None
+            self.transfert_dest_service = None
+            self.transfert_dest_name = None
+
+
+        vaccinations = self.doc.component.find_section("11369-6")
+        vaccine_tuberculosis = next(
+            e for e in vaccinations.entries
+            if  e.consumable.code.code == "J07AN"
+        )
+        self.vaccine_tuberculosis = not vaccine_tuberculosis.negation_ind
+        vaccine_hepB = next(
+            e for e in vaccinations.entries
+            if  e.consumable.code.code == "J07BC01"
+        )
+        self.vaccine_hepB = not vaccine_hepB.negation_ind
+        
+        healthcare_plan = self.doc.component.find_section("18776-5")
+        self.guidance_other_prof = healthcare_plan.find_entry("ORG-194", attr="qualifier") is not None
+        self.guidance_pluridisc_structure = healthcare_plan.find_entry("ORG-195", attr="qualifier") is not None
+        self.link_pmi_doctor = healthcare_plan.find_entry("ORG-196", attr="qualifier") is not None
 
 
     @property
@@ -168,24 +236,14 @@ class CSE8(Api):
         return first_or_none([i for i in self.doc.informants if i.code.code == "NFTH"])
 
     @staticmethod
-    def _is_mother(subj: "Subject | None") -> bool:
+    def _is_natural_mother(subj: "Subject | None") -> bool:
         if subj is None or subj.code is None:
             return False
-        return subj.code.code in {"NMTH", "MTH"}
+        return subj.code.code == "NMTH"
 
     @staticmethod
-    def _is_father(subj: "Subject | None") -> bool:
+    def _is_second_parent(subj: "Subject | None") -> bool:
+        # requires 2026.01 at least, otherwise the natural mother can have MTH instead of NMTH
         if subj is None or subj.code is None:
             return False
-        return subj.code.code in {"NFTH", "FTH"}
-
-    @property
-    def mother_birth_date(self) -> datetime | None:
-        if self._mother_birth_date is None:
-            # for whatever reason, the mother's birth date is in some of the sections related to her,
-            # but not in the informant part
-            for entry in self.iter_entries():
-                if self._is_mother(entry.subject) and entry.subject.birth_time:
-                    self._mother_birth_date = entry.subject.birth_time
-                    break
-        return self._mother_birth_date
+        return subj.code.code in {"MTH", "NFTH", "FTH"}
