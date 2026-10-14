@@ -19,15 +19,15 @@ class CSE8(Api):
         exam = [
             se for se in self.doc.documentation_of if se.class_code == "ACT"
         ][0]  # always only one?
-        self.exam_date = exam.effective_time.any_value
-        self.exam_med_family_name = exam.performers[
+        self.attributes["exam_date"] = exam.effective_time.any_value
+        self.attributes["exam_med_family_name"] = exam.performers[
             0
         ].name.any_family  # TODO: what if more than one?
-        self.exam_med_given_name = exam.performers[0].name.any_given
-        self.exam_place_code = exam.performers[
+        self.attributes["exam_med_given_name"] = exam.performers[0].name.any_given
+        self.attributes["exam_place_code"] = exam.performers[
             0
         ].represented_organization.standard_industry_class_code.display_name
-        self.exam_qual = exam.code.display_name
+        self.attributes["exam_qual"] = exam.code.display_name
         # correspondant
         corre = first_or_none(
             [
@@ -37,23 +37,23 @@ class CSE8(Api):
             ]
         )
         if corre:
-            self.treating_med_family_name = corre.name.any_family
-            self.treating_med_given_name = corre.name.any_given
-            self.treating_med_qual = corre.code.display_name
+            self.attributes["treating_med_family_name"] = corre.name.any_family
+            self.attributes["treating_med_given_name"] = corre.name.any_given
+            self.attributes["treating_med_qual"] = corre.code.display_name
 
         # body fields
         # for whatever reason, the mother's birth date and NIR are in some of the sections related to her,
         # but not in the informant part
-        self.mother_birth_date: datetime | None = None
-        self.mother_nir: str | None = None
+        self.attributes["mother_birth_date"] = None
+        self.attributes["mother_nir"] = None
         for entry in self.iter_entries():
             if self._is_natural_mother(entry.subject) and entry.subject.birth_time:
-                self.mother_birth_date = entry.subject.birth_time
+                self.attributes["mother_birth_date"] = entry.subject.birth_time
             if self._is_natural_mother(entry.subject) and entry.subject.nir:
-                self.mother_nir = entry.subject.nir
-            if self.mother_birth_date and self.mother_nir:
+                self.attributes["mother_nir"] = entry.subject.nir
+            if self.attributes["mother_birth_date"] and self.attributes["mother_nir"]:
                 break
-        self.parent2_link = (
+        self.attributes["parent2_link"] = (
             entry.subject.code.code
             if (entry := first_or_none(
                 [e for e in self.iter_entries() if self._is_second_parent(e.subject)]
@@ -123,9 +123,7 @@ class CSE8(Api):
             ("child_diet", "67704-7", "qualifier", None),
             ("child_tuberculosis_risk", "MED-283", "qualifier", None),
         ]:
-            value = self.get_value_from_code(code, code_type, entry_condition)
-            if value is not None:
-                setattr(self, attr, value)
+            self.attributes[attr] = self.get_value_from_code(code, code_type, entry_condition)
 
         newborn_infos = self.doc.component.find_section("57075-4")
         vital_signs = (
@@ -137,86 +135,88 @@ class CSE8(Api):
         for component in vital_signs.components:
             match component.code.code:
                 case "29463-7":
-                    self.child_weight = component.value.cast()
+                    self.attributes["child_weight"] = component.value.cast()
                 case "8302-2":
-                    self.child_height = component.value.cast()
+                    self.attributes["child_height"] = component.value.cast()
                 case "8287-5":
-                    self.child_cranial_perimeter = component.value.cast()
+                    self.attributes["child_cranial_perimeter"] = component.value.cast()
                 case "9272-6":
-                    self.child_apgar_1mn = component.value.cast()
+                    self.attributes["child_apgar_1mn"] = component.value.cast()
                 case "9274-2":
-                    self.child_apgar_5mn = component.value.cast()
+                    self.attributes["child_apgar_5mn"] = component.value.cast()
                 case "9271-8":
-                    self.child_apgar_10mn = component.value.cast()
+                    self.attributes["child_apgar_10mn"] = component.value.cast()
 
         first_week_pathologies = newborn_infos.find_subsection("11450-4").entries[0]
         for relat in first_week_pathologies.entry_relationship:
             match relat.value.code:
                 case "P22.9":
-                    self.child_respiratory_distress = None if relat.negation_ind is None else not relat.negation_ind
+                    self.attributes["child_respiratory_distress"] = None if relat.negation_ind is None else not relat.negation_ind
                 case "MED-276":
-                    self.child_antibiotherapy_more_than_48h = None if relat.negation_ind is None else not relat.negation_ind
+                    self.attributes["child_antibiotherapy_more_than_48h"] = None if relat.negation_ind is None else not relat.negation_ind
                 case "G96.9":
-                    self.child_neurological_pathology = None if relat.negation_ind is None else not relat.negation_ind
+                    self.attributes["child_neurological_pathology"] = None if relat.negation_ind is None else not relat.negation_ind
                 case "73994005":
-                    self.child_surgical_emergency = None if relat.negation_ind is None else not relat.negation_ind
+                    self.attributes["child_surgical_emergency"] = None if relat.negation_ind is None else not relat.negation_ind
                 case "GEN-092.01.11":
-                    self.child_other_first_week_pathology = None if relat.negation_ind is None else not relat.negation_ind
+                    self.attributes["child_other_first_week_pathology"] = None if relat.negation_ind is None else not relat.negation_ind
 
         gestures_deafness = newborn_infos.find_subsection("29554-3")
-        self.specialized_tech_gestures = None if (e := gestures_deafness.find_entry("MED-174")).negation_ind is None else not e.negation_ind
+        self.attributes["specialized_tech_gestures"] = None if (e := gestures_deafness.find_entry("MED-174")).negation_ind is None else not e.negation_ind
         deafness_screening = gestures_deafness.find_entry("MED-1304")
-        self.deafness_screening_done = None if deafness_screening.negation_ind is None else not deafness_screening.negation_ind
-        self.deafness_screening_result = deafness_screening.find_entryrelationship("MED-1305").value.cast()
+        self.attributes["deafness_screening_done"] = None if (deafness_screening is None or deafness_screening.negation_ind is None) else not deafness_screening.negation_ind
+        self.attributes["deafness_screening_result"] = None if deafness_screening is None else deafness_screening.find_entryrelationship("MED-1305").value.cast()
 
         treatments = newborn_infos.find_subsection("18610-6")
         vrs_immunisation = next(
-            e for e in treatments.entries
+            (e for e in treatments.entries
             if e.code.code == "DRUG"
-            and e.consumable.code.code == "J06BD08"
+            and e.consumable.any_match_code("J06BD08")),
+            None,
         )
-        self.vrs_immunisation = not vrs_immunisation.negation_ind
+        self.attributes["vrs_immunisation"] = not vrs_immunisation.negation_ind if vrs_immunisation else None
         hepB_immunoglobin = next(
-            e for e in treatments.entries
+            (e for e in treatments.entries
             if e.code.code == "DRUG"
-            and e.consumable.code.code == "J06BB04"
+            and e.consumable.any_match_code("J06BB04")),
+            None,
         )
-        self.hepB_immunoglobin = not hepB_immunoglobin.negation_ind
+        self.attributes["hepB_immunoglobin"] = not hepB_immunoglobin.negation_ind if hepB_immunoglobin else None
 
         transfert = first_or_none([
             sec for sec in newborn_infos.subsections if sec.code.code == "42545-4" and sec.find_entry("ORG-081")
         ])
         if transfert is not None:
-            self.transfert = True
-            self.transfert_type = transfert.find_entry("ORG-081").value.cast()
+            self.attributes["transfert"] = True
+            self.attributes["transfert_type"] = transfert.find_entry("ORG-081").value.cast()
             transfert_infos = transfert.find_entry("80413-8")
-            self.transfert_dest_type = transfert_infos.qualifier.value.display_name
-            self.transfert_dest_service = transfert_infos.participants[0].entity_code.display_name
-            self.transfert_dest_name = transfert_infos.participants[0].name.display
+            self.attributes["transfert_dest_type"] = None if (q := transfert_infos.qualifier) is None else q.value.display_name
+            self.attributes["transfert_dest_service"] = ec.display_name if (ec := transfert_infos.participants[0].entity_code) else None
+            self.attributes["transfert_dest_name"] = transfert_infos.participants[0].name.display
         else:
-            self.transfert = False
-            self.transfert_type = None
-            self.transfert_dest_type = None
-            self.transfert_dest_service = None
-            self.transfert_dest_name = None
+            self.attributes["transfert"] = False
+            self.attributes["transfert_type"] = None
+            self.attributes["transfert_dest_type"] = None
+            self.attributes["transfert_dest_service"] = None
+            self.attributes["transfert_dest_name"] = None
 
 
         vaccinations = self.doc.component.find_section("11369-6")
         vaccine_tuberculosis = next(
             e for e in vaccinations.entries
-            if  e.consumable.code.code == "J07AN"
+            if  e.consumable.any_match_code("J07AN")
         )
-        self.vaccine_tuberculosis = not vaccine_tuberculosis.negation_ind
+        self.attributes["vaccine_tuberculosis"] = not vaccine_tuberculosis.negation_ind
         vaccine_hepB = next(
             e for e in vaccinations.entries
-            if  e.consumable.code.code == "J07BC01"
+            if  e.consumable.any_match_code("J07BC01")
         )
-        self.vaccine_hepB = not vaccine_hepB.negation_ind
+        self.attributes["vaccine_hepB"] = not vaccine_hepB.negation_ind
         
         healthcare_plan = self.doc.component.find_section("18776-5")
-        self.guidance_other_prof = healthcare_plan.find_entry("ORG-194", attr="qualifier") is not None
-        self.guidance_pluridisc_structure = healthcare_plan.find_entry("ORG-195", attr="qualifier") is not None
-        self.link_pmi_doctor = healthcare_plan.find_entry("ORG-196", attr="qualifier") is not None
+        self.attributes["guidance_other_prof"] = healthcare_plan.find_entry("ORG-194", attr="qualifier") is not None
+        self.attributes["guidance_pluridisc_structure"] = healthcare_plan.find_entry("ORG-195", attr="qualifier") is not None
+        self.attributes["link_pmi_doctor"] = healthcare_plan.find_entry("ORG-196", attr="qualifier") is not None
 
 
     @property
