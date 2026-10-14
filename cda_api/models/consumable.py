@@ -27,7 +27,7 @@ class Consumable:
 
 class ConsumableParser(Parser):
     def _parse(self) -> Consumable:
-        product = self.raw.get("manufacturedProduct", {}).get("manufacturedMaterials", {})
+        product = self.raw.get("manufacturedProduct", {}).get("manufacturedMaterial", {})
         return Consumable(
             type_code=self.raw.get("@typeCode"),
             class_code=self.raw.get("manufacturedProduct", {}).get("@classCode"),
