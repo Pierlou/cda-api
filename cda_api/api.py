@@ -10,6 +10,13 @@ class Api(ABC):
 
     def __init__(self, document: "ClinicalDocument"):
         self.doc = document
+        self.attributes = {}
+
+    def __repr__(self) -> str:
+        display = ""
+        for k, v in self.attributes.items():
+            display += f"{k}: {v}\n"
+        return display
 
     def iter_entries(self):
         for section in self.doc.component.sections:
