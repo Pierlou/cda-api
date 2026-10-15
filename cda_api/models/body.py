@@ -4,7 +4,7 @@ import logging
 import re
 from typing import Any
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 
 import pandas as pd
 
@@ -18,7 +18,7 @@ from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.person import Person, PersonParser
 from cda_api.models.telecom import Telecom, TelecomParser
-from cda_api.utils import NullObject, Parser, ensure_list, get, last_key, parse_time
+from cda_api.utils import NullObject, Parser, ensure_list, first_or_none, get, last_key, parse_time
 
 
 def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
@@ -108,6 +108,11 @@ class Qualifier:
     name: Code | None
     value: Code | None
 
+    @property
+    def code(self):
+        # convenience for find_entry, what always seems to matter is the value's code
+        return self.value.code
+
 
 @dataclass(frozen=True)
 class Subject:  # TODO: derived from Person?
@@ -118,7 +123,13 @@ class Subject:  # TODO: derived from Person?
     address: Address | None
     name: Name | None
     telecom: list[Telecom]
-    birth_time: date | None
+    birth_time: datetime | None
+    sdtc_id: list[ExtId]
+
+    @property
+    def nir(self) -> str | None:
+        found = first_or_none([eid for eid in self.sdtc_id if eid.id == "1.2.250.1.213.1.4.13"])
+        return None if found is None else found.extension
 
 
 class SubjectParser(Parser):
@@ -136,6 +147,7 @@ class SubjectParser(Parser):
             birth_time=parse_time(subj["birthTime"]["@value"])
             if subj and subj.get("birthTime")
             else None,
+            sdtc_id=ExtIdParser(subj.get("sdtc:id") if subj else None).parse(),
         )
 
 
@@ -160,6 +172,8 @@ class Value(Code):
             case "INT":
                 return int(self.value)
             case "PQ":
+                if self.unit == "{score}":
+                    return self.value
                 return self.value + self.unit
             case "CD":
                 # maybe we'd rather have the code, or both?
@@ -200,7 +214,7 @@ class Criterion:
 
 @dataclass(frozen=True)
 class Relation:
-    type: str  # observation, atc, procedure...
+    type: str  # observation, act, procedure...
     type_code: str | None
     class_code: str | None
     mood_code: str | None
@@ -220,6 +234,7 @@ class EntryParticipant(Person):
     class_code: str | None
     id: list[ExtId]
     code: Code | None
+    entity_code: Code | None
 
 
 class EntryParticipantParser(Parser):
@@ -243,6 +258,9 @@ class EntryParticipantParser(Parser):
                     name=person.name,
                     address=person.address,
                     telecom=person.telecom,
+                    entity_code=CodeParser(
+                        (participant.get("playingEntity") or {}).get("code")
+                    ).parse(),
                 )
             )
         return pp
@@ -263,7 +281,7 @@ class Entry:
     effective_time: EffectiveTime
     target_site_code: Code | None
     # approach_site_code: str | None  # never really understandable
-    negation_ind: str | None  # TODO: cast to bool?
+    negation_ind: bool | None
     consumable: Consumable | None
     dose_quantity: DoseQuantity | None
     expected_use_time: dict | None
@@ -278,10 +296,10 @@ class Entry:
     repeat_number: str | None
     route_code: Code | None
     value: Value | None
-    component: list[Relation]
+    components: list[Relation]
     subject: Subject | None
     performers: list[Perfomer]
-    participant: list[EntryParticipant]
+    participants: list[EntryParticipant]
     entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
@@ -289,6 +307,23 @@ class Entry:
 
     def match_code(self, code: str) -> bool:
         return self.code and self.code.code == code
+
+    def find_entryrelationship(self, code: str, attr: str = "code") -> Entry | None:
+        try:
+            return next(ent for ent in self.entry_relationship if getattr(ent, attr).code == code)
+        except StopIteration:
+            return None
+
+    def find_component(self, code: str, attr: str = "code") -> Relation | None:
+        try:
+            return next(comp for comp in self.components if getattr(comp, attr).code == code)
+        except StopIteration:
+            return None
+
+    @property
+    def happened(self):
+        """Convenience around negation_ind syntax"""
+        return None if self.negation_ind is None else not self.negation_ind
 
 
 class EntryParser(Parser):
@@ -335,7 +370,9 @@ class EntryParser(Parser):
                     target_site_code=CodeParser(
                         entry.get("targetSiteParser")
                     ).parse(),  # TODO: handle originalText and qualifier
-                    negation_ind=entry.get("@negationInd"),
+                    negation_ind=(
+                        ni if (ni := entry.get("@negationInd")) is None else ni == "true"
+                    ),
                     consumable=ConsumableParser(entry.get("consumable")).parse(),
                     dose_quantity=(
                         DoseQuantity(
@@ -367,7 +404,7 @@ class EntryParser(Parser):
                     repeat_number=entry.get("repeatNumber", {}).get("@value"),
                     route_code=CodeParser(entry.get("routeCode")).parse(),
                     value=ValueParser(entry.get("value")).parse(),
-                    component=[
+                    components=[
                         Relation(
                             type=lk,
                             type_code=c.get("@typeCode"),
@@ -389,7 +426,7 @@ class EntryParser(Parser):
                         assigned_key="assignedEntity",
                     ),
                     entry_relationship=EntryParser(entry.get("entryRelationship")).parse(),
-                    participant=EntryParticipantParser(entry.get("participant")).parse(),
+                    participants=EntryParticipantParser(entry.get("participant")).parse(),
                 )
             )
         return entries
@@ -410,6 +447,18 @@ class Section:
     author: list[Assigned]
     subsections: list[Section]
     # informant: list[Entity]  # never seen but mentionned in doc
+
+    def find_subsection(self, code: str) -> Section | None:
+        try:
+            return next(sub for sub in self.subsections if sub.code.code == code)
+        except StopIteration:
+            return None
+
+    def find_entry(self, code: str, attr: str = "code") -> Entry | None:
+        try:
+            return next(ent for ent in self.entries if getattr(ent, attr).code == code)
+        except StopIteration:
+            return None
 
 
 class SectionParser(Parser):
@@ -438,7 +487,8 @@ class SectionParser(Parser):
             ),
             entries=EntryParser(self.raw.get("entry")).parse(),
             subsections=[
-                SectionParser(c["section"]).parse() for c in ensure_list(self.raw.get("component", []))
+                SectionParser(c["section"]).parse()
+                for c in ensure_list(self.raw.get("component", []))
             ],
         )
 
@@ -448,6 +498,12 @@ class Body:
     sections: list[Section]
     _type: str
     text: str | None
+
+    def find_section(self, code: str) -> Section | None:
+        try:
+            return next(sec for sec in self.sections if sec.code.code == code)
+        except StopIteration:
+            return None
 
 
 class BodyParser(Parser):

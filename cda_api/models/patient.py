@@ -5,7 +5,7 @@ from cda_api.models.code import Code, CodeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.person import Person, PersonParser
 from cda_api.models.place import Place, PlaceParser
-from cda_api.utils import Parser
+from cda_api.utils import Parser, first_or_none
 
 
 @dataclass(frozen=True)
@@ -16,6 +16,11 @@ class Patient(Person):
     class_code: str
     guardian_persons: list[Person]
     id: list[ExtId]
+
+    @property
+    def nir(self) -> str | None:
+        found = first_or_none([eid for eid in self.id if eid.id == "1.2.250.1.213.1.4.13"])
+        return None if found is None else found.extension
 
 
 class PatientParser(Parser):

@@ -12,6 +12,10 @@ class EffectiveTime:
     xsi_type: str | None
     value: datetime | None
 
+    @property
+    def any_value(self) -> datetime | None:
+        return self.value or self.low or self.high
+
 
 class EffectiveTimeParser(Parser):
     def _parse(self) -> EffectiveTime:

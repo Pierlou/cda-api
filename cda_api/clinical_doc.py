@@ -31,11 +31,19 @@ from cda_api.models import (
     ServiceEventParser,
 )
 from cda_api.api import Api
+from cda_api.doc_types import CSE8, CSE9, CSE24
 from cda_api.utils import ensure_list, get, parse_time
 
 
+API_REGISTRY: dict[str, Api] = {
+    "cse8": CSE8,
+    "cse9": CSE9,
+    "cse24": CSE24,
+}
+
+
 class ClinicalDocument:
-    def __init__(self, raw: dict, name: str):
+    def __init__(self, raw: dict, name: str, doc_type: str | None = None):
         self._raw: dict = raw
         self.name: str = name
         self.realm_code: str = get(raw, "realmCode.@code")
@@ -107,14 +115,17 @@ class ClinicalDocument:
         self.component: Body = BodyParser(self._raw["component"]).parse()
 
         # should always be last
-        self.api = Api(self)
+        if doc_type is not None:
+            if doc_type not in API_REGISTRY:
+                raise NotImplementedError(f"Unknown doc type: `{doc_type}`")
+            self.api: Api = API_REGISTRY[doc_type](self)
 
     @classmethod
-    def load(cls, path: str | Path) -> "ClinicalDocument":
+    def load(cls, path: str | Path, doc_type: str | None = None) -> "ClinicalDocument":
         with open(str(path), encoding="utf-8") as f:
             raw = xmltodict.parse(f.read())["ClinicalDocument"]
         name = ".".join(str(path).split("/")[-1].split(".")[:-1])
-        return cls(raw, name)
+        return cls(raw, name, doc_type)
 
     def to_json(self, file_path: str | Path | None = None) -> None:
         file_path = file_path or f"{self.name}.json"

@@ -26,7 +26,14 @@ urls: list[str] = [
 def test_load_remote_files(url: str):
     name = download(url)
     try:
-        ClinicalDocument.load(name)
+        if "CSE-CS8" in url.split("/")[-1]:
+            ClinicalDocument.load(name, doc_type="cse8")
+        if "CSE-CS9" in url.split("/")[-1]:
+            ClinicalDocument.load(name, doc_type="cse9")
+        if "CSE-CS24" in url.split("/")[-1]:
+            ClinicalDocument.load(name, doc_type="cse24")
+        else:
+            ClinicalDocument.load(name)
     except Exception as e:
         # known exceptions that we don't want to support, uncomment to see why
         if e.__repr__() == "KeyError('ClinicalDocument')":
@@ -45,7 +52,10 @@ def test_load_remote_files(url: str):
     files,
 )
 def test_load_files(file: str):
-    ClinicalDocument.load("tests/data/" + file)
+    if "CSE-CS8" in file:
+        ClinicalDocument.load("tests/data/" + file, doc_type="cse8")
+    else:
+        ClinicalDocument.load("tests/data/" + file)
 
 
 @pytest.mark.parametrize(
