@@ -45,6 +45,21 @@ class Address:
                 logging.warning(f"Unknown street type: {first}")
                 return None
 
+    @property
+    def display(self) -> str:
+        disp = ""
+        if self.house_number:
+            disp += f"{self.house_number} "
+        if self.unit_id:
+            disp += f"({self.unit_id}) "
+        if self.street_name:
+            disp += f"{self.street_name} "
+        if self.city:
+            disp += f"{self.city} "
+        if self.country:
+            disp += f"{self.country} "
+        return disp.strip()
+
 
 class AddressParser(Parser):
     # very few cases of self.raw being a list so keeping just Address if possible,
