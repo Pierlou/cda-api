@@ -31,12 +31,14 @@ from cda_api.models import (
     ServiceEventParser,
 )
 from cda_api.api import Api
-from cda_api.doc_types import CSE8
+from cda_api.doc_types import CSE8, CSE9, CSE24
 from cda_api.utils import ensure_list, get, parse_time
 
 
 API_REGISTRY: dict[str, Api] = {
     "cse8": CSE8,
+    "cse9": CSE9,
+    "cse24": CSE24,
 }
 
 
