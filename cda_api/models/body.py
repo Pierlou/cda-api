@@ -308,9 +308,15 @@ class Entry:
     def match_code(self, code: str) -> bool:
         return self.code and self.code.code == code
 
-    def find_entryrelationship(self, code: str) -> Entry | None:
+    def find_entryrelationship(self, code: str, attr: str = "code") -> Entry | None:
         try:
-            return next(ent for ent in self.entry_relationship if ent.code.code == code)
+            return next(ent for ent in self.entry_relationship if getattr(ent, attr).code == code)
+        except StopIteration:
+            return None
+
+    def find_component(self, code: str, attr: str = "code") -> Relation | None:
+        try:
+            return next(comp for comp in self.components if getattr(comp, attr).code == code)
         except StopIteration:
             return None
 
