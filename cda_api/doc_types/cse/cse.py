@@ -19,25 +19,43 @@ class CSE(Api):
         self.attributes["child_birth_date"] = self.doc.patient.birth_time.strftime("%Y-%m-%d")
         self.attributes["child_sex"] = self.doc.patient.administrative_gender_code.code
         self.attributes["birthplace_label"] = self.doc.patient.birth_place.name
-        self.attributes["birthplace_house_number"] = self.doc.patient.birth_place.address.house_number
-        self.attributes["birthplace_street_type"], self.attributes["birthplace_street_name"] = self.doc.patient.birth_place.address.street_type_name_split
+        self.attributes["birthplace_house_number"] = (
+            self.doc.patient.birth_place.address.house_number
+        )
+        self.attributes["birthplace_street_type"], self.attributes["birthplace_street_name"] = (
+            self.doc.patient.birth_place.address.street_type_name_split
+        )
         self.attributes["birthplace_precision"] = self.doc.patient.birth_place.address.unit_id
         self.attributes["birthplace_postal_code"] = self.doc.patient.birth_place.address.postal_code
         self.attributes["birthplace_city_name"] = self.doc.patient.birth_place.address.city
-        self.attributes["home_parent_last_name"] = self.doc.patient.guardian_persons[0].name.any_family
-        self.attributes["home_parent_first_name"] = self.doc.patient.guardian_persons[0].name.any_given
+        self.attributes["home_parent_last_name"] = self.doc.patient.guardian_persons[
+            0
+        ].name.any_family
+        self.attributes["home_parent_first_name"] = self.doc.patient.guardian_persons[
+            0
+        ].name.any_given
         self.attributes["home_phone"] = self.doc.patient.guardian_persons[0].home_phone
-        self.attributes["home_house_number"] = self.doc.patient.guardian_persons[0].address.house_number
-        self.attributes["home_street_type"], self.attributes["home_street_name"] = self.doc.patient.guardian_persons[0].address.street_type_name_split
+        self.attributes["home_house_number"] = self.doc.patient.guardian_persons[
+            0
+        ].address.house_number
+        self.attributes["home_street_type"], self.attributes["home_street_name"] = (
+            self.doc.patient.guardian_persons[0].address.street_type_name_split
+        )
         self.attributes["home_phone"] = self.doc.patient.guardian_persons[0].home_phone
         self.attributes["home_precision"] = self.doc.patient.guardian_persons[0].address.unit_id
-        self.attributes["home_postal_code"] = self.doc.patient.guardian_persons[0].address.postal_code
+        self.attributes["home_postal_code"] = self.doc.patient.guardian_persons[
+            0
+        ].address.postal_code
         self.attributes["home_city_name"] = self.doc.patient.guardian_persons[0].address.city
         # missing bis/ter for both
 
         # mother
-        self.attributes["mother_maiden_name"] = (self.biological_mother or self.mother).name.any_family  # not good enough
-        self.attributes["mother_first_name"] = (self.biological_mother or self.mother).name.any_given
+        self.attributes["mother_maiden_name"] = (
+            self.biological_mother or self.mother
+        ).name.any_family  # not good enough
+        self.attributes["mother_first_name"] = (
+            self.biological_mother or self.mother
+        ).name.any_given
         # for whatever reason, the mother's birth date and NIR are in some of the sections related to her,
         # but not in the informant part
         self.attributes["mother_birth_date"] = None
@@ -45,7 +63,7 @@ class CSE(Api):
             if self._is_biological_mother(entry.subject) and entry.subject.birth_time:
                 self.attributes["mother_birth_date"] = entry.subject.birth_time.strftime("%Y-%m-%d")
                 break
-        
+
         # examination details
         exam = [se for se in self.doc.documentation_of if se.class_code == "ACT"][
             0

@@ -12,10 +12,10 @@ class CSE9(CSE):
     def __init__(self, document: "ClinicalDocument"):
         super().__init__(document)
         self.attributes["child_nir"] = self.doc.patient.nir
-        exam = [se for se in self.doc.documentation_of if se.class_code == "ACT"][
+        exam = [se for se in self.doc.documentation_of if se.class_code == "ACT"][0]
+        self.attributes["exam_frame"] = exam.performers[
             0
-        ]
-        self.attributes["exam_frame"] = exam.performers[0].represented_organization.standard_industry_class_code.display_name
+        ].represented_organization.standard_industry_class_code.display_name
 
         for attr, code, code_type, entry_condition in [
             ("child_daycare", "PAT-058", "qualifier", None),
@@ -25,7 +25,7 @@ class CSE9(CSE):
             ("tuberculosis_risk", "MED-283", "qualifier", None),
         ]:
             self.attributes[attr] = self.get_value_from_code(code, code_type, entry_condition)
-        
+
         self.attributes["child_daycare_mode"] = (
             # only here if daycare
             self.get_value_from_code("PAT-048", "qualifier", None)
@@ -34,10 +34,12 @@ class CSE9(CSE):
         )
 
         medical_history = self.doc.component.find_section("11348-0").entries[0]  # always only one?
-        self.attributes["prematurity_inf_33_weeks"] = medical_history.find_entryrelationship("MED-183", "value").happened
+        self.attributes["prematurity_inf_33_weeks"] = medical_history.find_entryrelationship(
+            "MED-183", "value"
+        ).happened
         domestic_accidents = medical_history.find_entryrelationship("MED-186", "value")
         self.attributes["any_domestic_accident_bef_month9"] = domestic_accidents.happened
-        for attr, code in  [
+        for attr, code in [
             ("traumatic_shock", "NF0A.4"),
             ("burn", "NE2Z"),
             ("intoxication", "NE61"),
@@ -46,16 +48,16 @@ class CSE9(CSE):
             self.attributes[attr] = domestic_accidents.find_entryrelationship(code).happened
 
         vital_signs = self.doc.component.find_section("8716-3").find_entry("85353-1")
-        for attr, code in  [
+        for attr, code in [
             ("child_weight", "29463-7"),
             ("child_height", "8302-2"),
             ("child_cranial_perimeter", "8287-5"),
         ]:
             self.attributes[attr] = vital_signs.find_component(code).value.cast()
 
-        self.attributes["neurodev_disorder"] = self.doc.component.find_section(
-            "xx-MCH-PsychoMDev"
-        ).find_entry("MED-1274").value.cast()
+        self.attributes["neurodev_disorder"] = (
+            self.doc.component.find_section("xx-MCH-PsychoMDev").find_entry("MED-1274").value.cast()
+        )
 
         self.attributes["vaccine_rotavirus_complete"] = True
         for ent in self.vaccinations.entries:
