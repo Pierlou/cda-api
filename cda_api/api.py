@@ -1,6 +1,8 @@
 from abc import ABC
 from typing import TYPE_CHECKING, Callable
 
+import pandas as pd
+
 if TYPE_CHECKING:
     from cda_api.clinical_doc import ClinicalDocument
 
@@ -28,3 +30,12 @@ class Api(ABC):
                 continue
             if getattr(entry, code_type) and getattr(entry, f"match_{code_type}")(code):
                 return entry.value.cast()
+
+    def to_csv(
+        self,
+        file_path: str | None = None,
+        pandas_kwargs: dict = {"encoding": "utf-8", "index": False, "sep": ";"},
+    ):
+        """Dumps self.attributes as a single-row csv file"""
+        df = pd.DataFrame([self.attributes])
+        df.to_csv(file_path or f"{self.__class__.__name__.lower()}.csv", **pandas_kwargs)
