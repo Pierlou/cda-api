@@ -76,22 +76,43 @@ class CSE8(CSE):
             # ("mother_other_pathology", "O24.4", "code", None),  # no clear example
             ("mother_nb_days_hospitalisation", "ORG-077", "code", None),
             ("mother_hospitalisation_reason", "ORG-086", "code", None),
-            ("trisomy_screening", "GEN-078", "code", None),
-            ("nb_ultrasound_scans", "ORG-079", "code", None),
-            ("morphology_ultrasound_scan", "ORG-080", "code", None),
-            ("early_prenatal_meeting", "GEN-079", "code", None),
-            ("hepatitis_antigen_search", "51659-1", "code", None),
-            ("nb_foetus", "55281-0", "code", None),
-            ("gestational_age", "11885-1", "code", None),
-            ("foetal_presentation", "MED-1248", "code", None),
-            ("pre_12h_membranic_breach", "MED-166", "code", None),
-            ("labour_start", "73813-8", "code", None),
-            ("labour_analgesia", "MED-168", "code", None),
-            ("birth_method", "57071-3", "code", None),
-            ("caesarean_cause", "MED-600", "code", None),
             ("child_tuberculosis_risk", "MED-283", "qualifier", None),
         ]:
             self.attributes[attr] = self.get_value_from_code(code, code_type, entry_condition)
+
+        prebirth_exams = self.doc.component.find_section("57078-8").find_entry("MED-1354")
+        for comp in prebirth_exams.components:
+            match comp.code.code:
+                case "315115008":
+                    self.attributes["trisomy_screening"] = comp.value.cast()
+                case "ORG-079":
+                    self.attributes["nb_ultrasound_scans"] = comp.value.cast()
+                case "ORG-080":
+                    self.attributes["morphology_ultrasound_scan"] = comp.value.cast()
+                case "GEN-079":
+                    self.attributes["early_prenatal_meeting"] = comp.value.cast()
+                case "51659-1":
+                    self.attributes["hepatitis_antigen_search"] = comp.value.cast()
+
+        labor_delivery = self.doc.component.find_section("57074-7").find_subsection("42545-4")
+        for ent in labor_delivery.entries:
+            match ent.code.code:
+                case "55281-0":
+                    self.attributes["nb_foetus"] = ent.value.cast()
+                case "11885-1":
+                    self.attributes["gestational_age"] = ent.value.cast()
+                case "MED-1248":
+                    self.attributes["foetal_presentation"] = ent.value.cast()
+                case "MED-166":
+                    self.attributes["pre_12h_membranic_breach"] = ent.value.cast()
+                case "73813-8":
+                    self.attributes["labour_start"] = ent.value.cast()
+                case "MED-168":
+                    self.attributes["labour_analgesia"] = ent.value.cast()
+                case "57071-3":
+                    self.attributes["birth_method"] = ent.value.cast()
+                case "MED-600":
+                    self.attributes["caesarean_cause"] = ent.value.cast()
 
         newborn_infos = self.doc.component.find_section("57075-4")
         vital_signs = (
