@@ -21,6 +21,7 @@ class Api(ABC):
         return display
 
     def iter_entries(self):
+        """Iter first level entries of the document"""
         for section in self.doc.component.sections:
             yield from section.entries
 
