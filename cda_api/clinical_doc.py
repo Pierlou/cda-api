@@ -4,6 +4,7 @@ from pathlib import Path
 
 import xmltodict
 
+from cda_api.api import Api
 from cda_api.models import (
     Assigned,
     AssignedParser,
