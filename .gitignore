@@ -18,3 +18,6 @@ dist
 
 # Code quality tools
 .ruff_cache/
+
+# converted files
+*.csv
