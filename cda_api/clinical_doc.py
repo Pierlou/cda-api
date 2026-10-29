@@ -4,6 +4,7 @@ from pathlib import Path
 
 import xmltodict
 
+from cda_api.api import Api
 from cda_api.models import (
     Assigned,
     AssignedParser,
@@ -30,7 +31,6 @@ from cda_api.models import (
     ServiceEvent,
     ServiceEventParser,
 )
-from cda_api.api import Api
 from cda_api.utils import ensure_list, get, parse_time
 
 

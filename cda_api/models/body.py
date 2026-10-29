@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
 from dataclasses import dataclass
 from datetime import date
+from typing import Any
 
 import pandas as pd
 
@@ -438,7 +438,8 @@ class SectionParser(Parser):
             ),
             entries=EntryParser(self.raw.get("entry")).parse(),
             subsections=[
-                SectionParser(c["section"]).parse() for c in ensure_list(self.raw.get("component", []))
+                SectionParser(c["section"]).parse()
+                for c in ensure_list(self.raw.get("component", []))
             ],
         )
 

@@ -38,7 +38,11 @@ class NameParser(Parser):
     def _parse(self) -> Name:
         if isinstance(self.raw, str):
             return Name(
-                prefix=[], suffix=[], family=None, given=None, text=self.raw,
+                prefix=[],
+                suffix=[],
+                family=None,
+                given=None,
+                text=self.raw,
             )
         return Name(
             prefix=self.raw.get("prefix"),
