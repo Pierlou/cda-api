@@ -22,6 +22,9 @@ class CodeParser(Parser):
                 self.raw = self.raw["name"]
             elif self.raw.get("value"):
                 self.raw = self.raw["value"]
+            elif self.raw.get("originalText"):
+                # no elegant way to handle, only case of returning None (very rare)
+                return None
             else:
                 raise NotImplementedError
         return Code(

@@ -34,7 +34,7 @@ class PerfomerParser(Parser):
                     type_code=perf.get("@typeCode"),
                     template_id=ExtIdParser(perf.get("templateId")).parse(),
                     time=EffectiveTimeParser(perf.get("time")).parse(),
-                    code=CodeParser(perf.get("code")).parse(),
+                    code=CodeParser(performer.get("code")).parse(),
                     name=person.name,
                     address=person.address,
                     telecom=person.telecom,

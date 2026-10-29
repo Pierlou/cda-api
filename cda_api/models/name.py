@@ -33,6 +33,10 @@ class Name:
     def any_family(self) -> str | None:
         return self.usual_family or first_or_none([f.text for f in self.family])
 
+    @property
+    def display(self) -> str:
+        return self.text or f"{self.any_given} {self.any_family}"
+
 
 class NameParser(Parser):
     def _parse(self) -> Name:
