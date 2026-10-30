@@ -6,11 +6,11 @@ from cda_api.models.device import Device, DeviceParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.organization import Organization, OrganizationParser
 from cda_api.models.person import Person, PersonParser
-from cda_api.utils import NullObject, Parser, parse_time
+from cda_api.utils import NullObject, Parser, PrettyPrint, parse_time
 
 
-@dataclass(frozen=True)
-class Assigned(Person, Device):
+@dataclass(frozen=True, repr=False)
+class Assigned(Person, Device, PrettyPrint):
     class_code: str | None
     code: Code | None
     context_control_code: str | None

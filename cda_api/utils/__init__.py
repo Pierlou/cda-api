@@ -1,3 +1,4 @@
+from .display import PrettyPrint
 from .jsonpath import get
 from .null import NullObject
 from .parser import Parser, ensure_list, first_or_none, last_key, parse_time
@@ -5,6 +6,7 @@ from .parser import Parser, ensure_list, first_or_none, last_key, parse_time
 __all__ = [
     "NullObject",
     "Parser",
+    "PrettyPrint",
     "ensure_list",
     "first_or_none",
     "get",

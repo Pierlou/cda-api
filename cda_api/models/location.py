@@ -6,7 +6,7 @@ from cda_api.models.place import Place, PlaceParser
 from cda_api.utils import Parser
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Location(Place):
     code: Code
     id: list[ExtId]

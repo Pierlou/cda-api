@@ -8,7 +8,7 @@ from cda_api.models.person import Person, PersonParser
 from cda_api.utils import NullObject, Parser
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Perfomer(Person):
     code: Code | None
     id: list[ExtId]

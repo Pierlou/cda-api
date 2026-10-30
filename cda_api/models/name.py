@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 
-from cda_api.utils import Parser, first_or_none
+from cda_api.utils import Parser, PrettyPrint, first_or_none
 
 
-@dataclass(frozen=True)
-class QualifiedName:
+@dataclass(frozen=True, repr=False)
+class QualifiedName(PrettyPrint):
     text: str
     qualifier: str | None
 
 
-@dataclass(frozen=True)
-class Name:
+@dataclass(frozen=True, repr=False)
+class Name(PrettyPrint):
     family: list[QualifiedName]
     given: list[QualifiedName]
     prefix: str | None

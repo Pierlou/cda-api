@@ -4,11 +4,11 @@ from cda_api.models.code import Code, CodeParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.performer import Perfomer, PerfomerParser
-from cda_api.utils import Parser
+from cda_api.utils import Parser, PrettyPrint
 
 
-@dataclass(frozen=True)
-class ServiceEvent:
+@dataclass(frozen=True, repr=False)
+class ServiceEvent(PrettyPrint):
     class_code: str | None
     code: Code | None
     effective_time: EffectiveTime | None

@@ -18,7 +18,7 @@ from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.person import Person, PersonParser
 from cda_api.models.telecom import Telecom, TelecomParser
-from cda_api.utils import NullObject, Parser, ensure_list, first_or_none, get, last_key, parse_time
+from cda_api.utils import NullObject, Parser, PrettyPrint, ensure_list, first_or_none, get, last_key, parse_time
 
 
 def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
@@ -52,11 +52,22 @@ def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
     )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Table:
     headers: list[str] | None
-    rows: list[str | None]
+    rows: list[list[str | None]]
     df: pd.DataFrame | None
+
+    def __repr__(self) -> str:
+        if self.df is not None:
+            return self.df.__repr__()
+        disp = ""
+        if self.headers:
+            disp += " | ".join(self.headers) + "\n"
+            disp += "_" * len(disp) + "\n"
+        for row in self.rows:
+            disp += " | ".join([(c or "") for c in row]) + "\n"
+        return disp
 
 
 class TableParser(Parser):
@@ -103,8 +114,8 @@ class DoseQuantity:
     unit: str
 
 
-@dataclass(frozen=True)
-class Qualifier:
+@dataclass(frozen=True, repr=False)
+class Qualifier(PrettyPrint):
     name: Code | None
     value: Code | None
 
@@ -114,8 +125,8 @@ class Qualifier:
         return self.value.code
 
 
-@dataclass(frozen=True)
-class Subject:  # TODO: derived from Person?
+@dataclass(frozen=True, repr=False)
+class Subject(PrettyPrint):  # TODO: derived from Person?
     type_code: str | None
     template_id: list[ExtId]
     class_code: str | None
@@ -151,8 +162,8 @@ class SubjectParser(Parser):
         )
 
 
-@dataclass(frozen=True)
-class Value(Code):
+@dataclass(frozen=True, repr=False)
+class Value(Code, PrettyPrint):
     xsi_type: str | None
     value: str | None
     unit: str | None
@@ -206,14 +217,14 @@ class ValueParser(Parser):
         )
 
 
-@dataclass(frozen=True)
-class Criterion:
+@dataclass(frozen=True, repr=False)
+class Criterion(PrettyPrint):
     code: Code | None
     value: Value
 
 
-@dataclass(frozen=True)
-class Relation:
+@dataclass(frozen=True, repr=False)
+class Relation(PrettyPrint):
     type: str  # observation, act, procedure...
     type_code: str | None
     class_code: str | None
@@ -227,8 +238,8 @@ class Relation:
     value: str
 
 
-@dataclass(frozen=True)
-class EntryParticipant(Person):
+@dataclass(frozen=True, repr=False)
+class EntryParticipant(Person, PrettyPrint):
     template_id: list[ExtId]
     type_code: str | None
     class_code: str | None
@@ -266,8 +277,8 @@ class EntryParticipantParser(Parser):
         return pp
 
 
-@dataclass(frozen=True)
-class Entry:
+@dataclass(frozen=True, repr=False)
+class Entry(PrettyPrint):
     _type: str | None
     class_code: str | None
     type_code: str | None
@@ -432,8 +443,8 @@ class EntryParser(Parser):
         return entries
 
 
-@dataclass(frozen=True)
-class Section:
+@dataclass(frozen=True, repr=False)
+class Section(PrettyPrint):
     code: Code | None
     class_code: str | None
     id: list[ExtId]
@@ -493,8 +504,8 @@ class SectionParser(Parser):
         )
 
 
-@dataclass(frozen=True)
-class Body:
+@dataclass(frozen=True, repr=False)
+class Body(PrettyPrint):
     sections: list[Section]
     _type: str
     text: str | None
