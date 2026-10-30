@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
 
@@ -18,7 +18,16 @@ from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.person import Person, PersonParser
 from cda_api.models.telecom import Telecom, TelecomParser
-from cda_api.utils import NullObject, Parser, PrettyPrint, ensure_list, first_or_none, get, last_key, parse_time
+from cda_api.utils import (
+    NullObject,
+    Parser,
+    PrettyPrint,
+    ensure_list,
+    first_or_none,
+    get,
+    last_key,
+    parse_time,
+)
 
 
 def get_clean_text(field: str | dict | list[dict] | None) -> str | None:
