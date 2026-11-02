@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from cda_api.utils import Parser
+from cda_api.utils import Parser, PrettyPrint
 
 
-@dataclass(frozen=True)
-class Telecom:
+@dataclass(frozen=True, repr=False)
+class Telecom(PrettyPrint):
     type: str
     use: str | None
     value: str

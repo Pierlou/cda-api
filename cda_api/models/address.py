@@ -1,11 +1,11 @@
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 
-from cda_api.utils import Parser
+from cda_api.utils import Parser, PrettyPrint
 
 
-@dataclass(frozen=True)
-class Address:
+@dataclass(frozen=True, repr=False)
+class Address(PrettyPrint):
     city: str | None
     country: str | None
     county: str | None

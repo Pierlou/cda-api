@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from cda_api.utils import Parser, parse_time
+from cda_api.utils import Parser, PrettyPrint, parse_time
 
 
-@dataclass(frozen=True)
-class EffectiveTime:
+@dataclass(frozen=True, repr=False)
+class EffectiveTime(PrettyPrint):
     low: datetime | None
     high: datetime | None
     operator: str | None

@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
 from cda_api.models.code import Code, CodeParser
-from cda_api.utils import Parser
+from cda_api.utils import Parser, PrettyPrint
 
 
-@dataclass(frozen=True)
-class Authorization:
+@dataclass(frozen=True, repr=False)
+class Authorization(PrettyPrint):
     type_code: str | None
     class_code: str | None
     mood_code: str | None

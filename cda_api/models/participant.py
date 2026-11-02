@@ -7,7 +7,7 @@ from cda_api.models.organization import Organization, OrganizationParser
 from cda_api.utils import NullObject, Parser
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Participant(Entity):
     type_code: str | None
     function_code: Code | None

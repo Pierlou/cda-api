@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from cda_api.utils import Parser
+from cda_api.utils import Parser, PrettyPrint
 
 
-@dataclass(frozen=True)
-class Code:
+@dataclass(frozen=True, repr=False)
+class Code(PrettyPrint):
     code: str
     display_name: str | None
     code_system: str | None

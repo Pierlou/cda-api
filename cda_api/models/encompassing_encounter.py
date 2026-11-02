@@ -5,11 +5,11 @@ from cda_api.models.code import Code, CodeParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.location import Location, LocationParser
-from cda_api.utils import Parser, get
+from cda_api.utils import Parser, PrettyPrint, get
 
 
-@dataclass(frozen=True)
-class EncompassingEncounter:
+@dataclass(frozen=True, repr=False)
+class EncompassingEncounter(PrettyPrint):
     code: Code | None
     effective_time: EffectiveTime
     id: list[ExtId]

@@ -7,7 +7,7 @@ from cda_api.models.telecom import Telecom, TelecomParser
 from cda_api.utils import NullObject, Parser
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Organization(Place):
     class_code: str | None
     id: list[ExtId]

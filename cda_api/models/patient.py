@@ -8,7 +8,7 @@ from cda_api.models.place import Place, PlaceParser
 from cda_api.utils import Parser, first_or_none
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Patient(Person):
     administrative_gender_code: Code
     birth_place: Place

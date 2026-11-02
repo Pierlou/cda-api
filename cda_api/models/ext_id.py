@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from cda_api.utils import Parser
+from cda_api.utils import Parser, PrettyPrint
 
 
-@dataclass(frozen=True)
-class ExtId:
+@dataclass(frozen=True, repr=False)
+class ExtId(PrettyPrint):
     "Dataclass for ids with potential extension"
 
     id: str | None

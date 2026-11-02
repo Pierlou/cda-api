@@ -2,19 +2,19 @@ from dataclasses import dataclass
 
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
-from cda_api.utils import Parser, ensure_list
+from cda_api.utils import Parser, PrettyPrint, ensure_list
 
 
-@dataclass(frozen=True)
-class Pharm:
+@dataclass(frozen=True, repr=False)
+class Pharm(PrettyPrint):
     # TODO: make these dicts objects
     form_code: dict | None
     as_specialized_kind: Code | None
     ingredient: dict | None
 
 
-@dataclass(frozen=True)
-class Consumable:
+@dataclass(frozen=True, repr=False)
+class Consumable(PrettyPrint):
     type_code: str | None
     class_code: str | None
     template_id: list[ExtId]

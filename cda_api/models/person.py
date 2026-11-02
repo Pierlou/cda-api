@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from cda_api.models.address import Address, AddressParser
 from cda_api.models.name import Name, NameParser
 from cda_api.models.telecom import Telecom, TelecomParser
-from cda_api.utils import Parser, first_or_none
+from cda_api.utils import Parser, PrettyPrint, first_or_none
 
 
-@dataclass(frozen=True)
-class Person:
+@dataclass(frozen=True, repr=False)
+class Person(PrettyPrint):
     address: Address | None
     name: Name
     telecom: list[Telecom]

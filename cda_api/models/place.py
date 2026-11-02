@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
 from cda_api.models.address import Address, AddressParser
-from cda_api.utils import Parser
+from cda_api.utils import Parser, PrettyPrint
 
 
-@dataclass(frozen=True)
-class Place:
+@dataclass(frozen=True, repr=False)
+class Place(PrettyPrint):
     address: Address | None
     name: str | None
 

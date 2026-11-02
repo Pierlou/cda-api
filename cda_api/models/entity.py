@@ -5,7 +5,7 @@ from cda_api.models.person import Person, PersonParser
 from cda_api.utils import Parser
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Entity(Person):
     class_code: str
     code: Code
