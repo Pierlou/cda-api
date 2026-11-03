@@ -17,7 +17,7 @@ from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.person import Person, PersonParser
-from cda_api.models.telecom import Telecom, TelecomParser
+from cda_api.models.telecom import Telecoms, TelecomParser
 from cda_api.utils import (
     NullObject,
     Parser,
@@ -142,7 +142,7 @@ class Subject(PrettyPrint):  # TODO: derived from Person?
     code: Code
     address: Address | None
     name: Name | None
-    telecom: list[Telecom]
+    telecom: Telecoms
     birth_time: datetime | None
     sdtc_id: list[ExtId]
 
@@ -263,10 +263,9 @@ class EntryParticipantParser(Parser):
         self.ensure_raw_is_list()
         for part in self.raw:
             participant = part["participantRole"] or {}
-            try:
+            if (participant.get("playingEntity") or {}).get("name"):
                 person = PersonParser(participant).parse(key="playingEntity")[0]
-            except Exception:
-                logging.error(f"Could not parse participant: {participant}")
+            else:
                 person = NullObject()
             pp.append(
                 EntryParticipant(

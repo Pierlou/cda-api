@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.place import Place, PlaceParser
-from cda_api.models.telecom import Telecom, TelecomParser
+from cda_api.models.telecom import Telecoms, TelecomParser
 from cda_api.utils import NullObject, Parser
 
 
@@ -12,7 +12,7 @@ class Organization(Place):
     class_code: str | None
     id: list[ExtId]
     standard_industry_class_code: Code | None
-    telecom: list[Telecom]
+    telecom: Telecoms
     type_code: str | None
 
 
