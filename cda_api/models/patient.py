@@ -17,10 +17,16 @@ class Patient(Person):
     guardian_persons: list[Person]
     id: list[ExtId]
 
+    def get_ext_from_id(self, id_: str) -> str | None:
+        return first_or_none([eid.extension for eid in self.id if eid.id == id_])
+
     @property
     def nir(self) -> str | None:
-        found = first_or_none([eid for eid in self.id if eid.id == "1.2.250.1.213.1.4.13"])
-        return None if found is None else found.extension
+        return self.get_ext_from_id("1.2.250.1.213.1.4.13")
+
+    @property
+    def ins(self) -> str | None:
+        return self.get_ext_from_id("1.2.250.1.213.1.4.8")
 
 
 class PatientParser(Parser):
