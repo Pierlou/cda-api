@@ -14,6 +14,7 @@ class ServiceEvent(PrettyPrint):
     effective_time: EffectiveTime | None
     id: list[ExtId]
     performers: list[Perfomer]
+    lab_status_code: str | None
 
 
 class ServiceEventParser(Parser):
@@ -26,4 +27,5 @@ class ServiceEventParser(Parser):
             performers=PerfomerParser(self.raw.get("performer")).parse(
                 assigned_key="assignedEntity",
             ),
+            lab_status_code=self.raw.get("lab:statusCode", {}).get("@code"),
         )
