@@ -26,6 +26,14 @@ class Name(PrettyPrint):
         return first_or_none([f.text for f in self.given if f.qualifier == "CL"])
 
     @property
+    def birth_family(self) -> str | None:
+        return first_or_none([f.text for f in self.family if f.qualifier == "BR"])
+
+    @property
+    def birth_given(self) -> str | None:
+        return first_or_none([f.text for f in self.given if f.qualifier == "BR"])
+
+    @property
     def any_given(self) -> str | None:
         return self.usual_given or first_or_none([f.text for f in self.given])
 
@@ -63,7 +71,7 @@ class NameParser(Parser):
         else:
             return [
                 QualifiedName(
-                    qualifier=name["@qualifier"],
+                    qualifier=name.get("@qualifier"),
                     text=name["#text"],
                 )
                 if isinstance(name, dict)
