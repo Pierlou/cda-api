@@ -49,6 +49,7 @@ class ParticipantParser(Parser):
                     function_code=CodeParser(p.get("functionCode")).parse(),
                     time=EffectiveTimeParser(p.get("time")).parse(),
                     scoping_organization=orga,
+                    id=entity.id,
                 )
             )
         return participants
