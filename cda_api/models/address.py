@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 
-from cda_api.utils import Parser, PrettyPrint
+from cda_api.utils import Parser, PrettyPrint, ensure_list
 
 
 @dataclass(frozen=True, repr=False)
@@ -14,6 +14,7 @@ class Address(PrettyPrint):
     street_name: str | None
     unit_id: str | None
     use: str | None
+    street_address_line: str | None  # when the info are not properly structured
 
     @property
     def departement(self) -> str | None:
@@ -75,6 +76,7 @@ class AddressParser(Parser):
                 country=self.raw.get("country"),
                 county=self.raw.get("county"),
                 use=self.raw.get("@use"),
+                street_address_line="|".join(ensure_list(self.raw.get("streetAddressLine")))
             )
         elif isinstance(self.raw, list):
             return [
@@ -87,6 +89,7 @@ class AddressParser(Parser):
                     country=a.get("country"),
                     county=a.get("county"),
                     use=a.get("@use"),
+                    street_address_line="|".join(ensure_list(a.get("streetAddressLine")))
                 )
                 for a in self.raw
             ]
