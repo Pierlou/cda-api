@@ -25,5 +25,6 @@ def test_departement(county: str | None, postal_code: str | None, expected: str 
         street_name="rue de la gare",
         unit_id=None,
         use=None,
+        street_address_line=None,
     )
     assert (a.departement == expected) if expected is not None else (a.departement is None)
