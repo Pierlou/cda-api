@@ -12,7 +12,7 @@ class CSE24(CSE):
     def __init__(self, document: "ClinicalDocument"):
         super().__init__(document)
         self.attributes["child_nir"] = self.doc.patient.nir
-        exam = [se for se in self.doc.documentation_of if se.class_code == "ACT"][0]
+        exam = next(se for se in self.doc.documentation_of if se.class_code == "ACT")
         self.attributes["exam_frame"] = exam.performers[
             0
         ].represented_organization.standard_industry_class_code.display_name

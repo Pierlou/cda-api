@@ -4,7 +4,7 @@ import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import Any, ClassVar
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.person import Person, PersonParser
-from cda_api.models.telecom import Telecom, TelecomParser
+from cda_api.models.telecom import TelecomParser, Telecoms
 from cda_api.utils import (
     NullObject,
     Parser,
@@ -131,7 +131,51 @@ class Qualifier(PrettyPrint):
     @property
     def code(self):
         # convenience for find_entry, what always seems to matter is the value's code
-        return self.value.code
+        return self.value.code if self.value is not None else None
+
+
+class Qualifiers:
+    def __init__(self, quals: list[Qualifier]):
+        self.quals = quals
+
+    def __repr__(self) -> str:
+        return self.quals.__repr__()
+
+    def __bool__(self) -> bool:
+        return len(self.quals) > 0
+
+    def any_match(self, qual_code: str) -> bool:
+        for qual in self.quals:
+            if qual.code == qual_code:
+                return True
+        return False
+
+    @property
+    def value(self):
+        match len(self.quals):
+            case 0:
+                return None
+            case 1:
+                return self.quals[0].value
+            case _:
+                raise ValueError(
+                    f"Requesting value with more than one qualifier is ambiguous: {self.quals}"
+                )
+
+    class QCode:
+        # we want to be able to match a code with the same syntax as a Code
+        def __init__(self, quals: list[Qualifier]):
+            self.quals = quals
+
+        def __eq__(self, code: str) -> bool:
+            for q in self.quals:
+                if q.code == code:
+                    return True
+            return False
+
+    @property
+    def code(self):
+        return self.QCode(self.quals)
 
 
 @dataclass(frozen=True, repr=False)
@@ -142,7 +186,7 @@ class Subject(PrettyPrint):  # TODO: derived from Person?
     code: Code
     address: Address | None
     name: Name | None
-    telecom: list[Telecom]
+    telecom: Telecoms
     birth_time: datetime | None
     sdtc_id: list[ExtId]
 
@@ -177,7 +221,7 @@ class Value(Code, PrettyPrint):
     value: str | None
     unit: str | None
     original_text: str | None
-    qualifier: list[Qualifier]
+    qualifier: Qualifiers
 
     def cast(self) -> Any:
         match self.xsi_type:
@@ -216,13 +260,15 @@ class ValueParser(Parser):
             value=self.raw.get("@value"),
             unit=self.raw.get("@unit"),
             original_text=self.raw.get("originalText", {}).get("reference", {}).get("@value"),
-            qualifier=[
-                Qualifier(
-                    name=CodeParser(q.get("name")).parse(),
-                    value=CodeParser(q.get("value")).parse(),
-                )
-                for q in ensure_list(self.raw.get("qualifier") or [])
-            ],
+            qualifier=Qualifiers(
+                [
+                    Qualifier(
+                        name=CodeParser(q.get("name")).parse(),
+                        value=CodeParser(q.get("value")).parse(),
+                    )
+                    for q in ensure_list(self.raw.get("qualifier") or [])
+                ]
+            ),
         )
 
 
@@ -263,10 +309,9 @@ class EntryParticipantParser(Parser):
         self.ensure_raw_is_list()
         for part in self.raw:
             participant = part["participantRole"] or {}
-            try:
+            if (participant.get("playingEntity") or {}).get("name"):
                 person = PersonParser(participant).parse(key="playingEntity")[0]
-            except Exception:
-                logging.error(f"Could not parse participant: {participant}")
+            else:
                 person = NullObject()
             pp.append(
                 EntryParticipant(
@@ -295,7 +340,7 @@ class Entry(PrettyPrint):
     template_id: list[ExtId]
     id: list[ExtId]
     code: Code | None
-    qualifier: Qualifier | None  # tells what the entry is about, encapsulated in code
+    qualifier: Qualifiers  # tells what the entry is about, encapsulated in code
     text: str | None
     status_code: Code | None
     effective_time: EffectiveTime
@@ -323,7 +368,7 @@ class Entry(PrettyPrint):
     entry_relationship: list[Entry]
 
     def match_qualifier(self, qual_code: str) -> bool:
-        return self.qualifier and self.qualifier.value and self.qualifier.value.code == qual_code
+        return self.qualifier.any_match(qual_code)
 
     def match_code(self, code: str) -> bool:
         return self.code and self.code.code == code
@@ -347,7 +392,7 @@ class Entry(PrettyPrint):
 
 
 class EntryParser(Parser):
-    _default_parsing_value = []
+    _default_parsing_value: ClassVar = []
 
     def _parse(self) -> list[Entry]:
         self.ensure_raw_is_list()
@@ -375,14 +420,14 @@ class EntryParser(Parser):
                     template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
                     code=CodeParser(entry.get("code")).parse(),
-                    qualifier=(
-                        # TODO: not good enough, can be a list
-                        Qualifier(
-                            CodeParser(q.get("name")).parse(),
-                            CodeParser(q.get("value")).parse(),
-                        )
-                        if (q := entry.get("code", {}).get("qualifier"))
-                        else None
+                    qualifier=Qualifiers(
+                        [
+                            Qualifier(
+                                CodeParser(q.get("name")).parse(),
+                                CodeParser(q.get("value")).parse(),
+                            )
+                            for q in ensure_list(entry.get("code", {}).get("qualifier"))
+                        ]
                     ),
                     text=((entry.get("text") or {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from cda_api.models.code import Code, CodeParser
+from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.person import Person, PersonParser
 from cda_api.utils import Parser
 
@@ -9,6 +10,7 @@ from cda_api.utils import Parser
 class Entity(Person):
     class_code: str
     code: Code
+    id: list[ExtId]
 
 
 class EntityParser(Parser):
@@ -20,4 +22,5 @@ class EntityParser(Parser):
             telecom=person.telecom,
             code=CodeParser(self.raw.get("code")).parse(),
             class_code=self.raw["@classCode"],
+            id=ExtIdParser(self.raw.get("id")).parse(),
         )

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import ClassVar
 
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.effective_time import EffectiveTime, EffectiveTimeParser
@@ -16,7 +17,7 @@ class Participant(Entity):
 
 
 class ParticipantParser(Parser):
-    _default_parsing_value = []
+    _default_parsing_value: ClassVar = []
 
     def _parse(self) -> list[Participant]:
         self.ensure_raw_is_list()
@@ -49,6 +50,7 @@ class ParticipantParser(Parser):
                     function_code=CodeParser(p.get("functionCode")).parse(),
                     time=EffectiveTimeParser(p.get("time")).parse(),
                     scoping_organization=orga,
+                    id=entity.id,
                 )
             )
         return participants

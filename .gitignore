@@ -21,3 +21,6 @@ dist
 
 # converted files
 *.csv
+
+# examples
+files/*

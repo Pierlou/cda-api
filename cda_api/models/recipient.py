@@ -20,10 +20,10 @@ class RecipientParser(Parser):
         for d in self.raw:
             rec = d["intendedRecipient"]
             person = NullObject()
-            if "informationRecipient" in rec.keys():
+            if "informationRecipient" in rec:
                 person = PersonParser(rec).parse(key="informationRecipient")[0]
             orga = None
-            if "receivedOrganization" in rec.keys():
+            if "receivedOrganization" in rec:
                 orga = OrganizationParser(rec["receivedOrganization"]).parse()
             recipients.append(
                 Recipient(

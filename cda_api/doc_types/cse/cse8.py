@@ -199,7 +199,7 @@ class CSE8(CSE):
             self.attributes["transfert_type"] = transfert.find_entry("ORG-081").value.cast()
             transfert_infos = transfert.find_entry("80413-8")
             self.attributes["transfert_dest_type"] = (
-                None if (q := transfert_infos.qualifier) is None else q.value.display_name
+                None if not (q := transfert_infos.qualifier) else q.value.display_name
             )
             self.attributes["transfert_dest_service"] = (
                 ec.display_name if (ec := transfert_infos.participants[0].entity_code) else None
