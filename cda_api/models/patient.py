@@ -39,7 +39,7 @@ class PatientParser(Parser):
             name=person.name,
             address=person.address,
             telecom=person.telecom,
-            birth_time=datetime.strptime(
+            birth_time=datetime.strptime(  # noqa: DTZ007
                 patient["birthTime"]["@value"],
                 "%Y%m%d",
             ).date(),

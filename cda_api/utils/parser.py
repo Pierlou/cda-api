@@ -28,12 +28,12 @@ def parse_time(time_str: str) -> datetime:
     if re.match(r"^\d{14}\+\d{4}$", time_str):
         return datetime.strptime(time_str, "%Y%m%d%H%M%S%z")
     if re.match(r"^\d{14}$", time_str):
-        return datetime.strptime(time_str, "%Y%m%d%H%M%S")
+        return datetime.strptime(time_str, "%Y%m%d%H%M%S")  # noqa: DTZ007
     if re.match(r"^\d{12}$", time_str):
         # many cases of no seconds
-        return datetime.strptime(time_str + "00", "%Y%m%d%H%M%S")
+        return datetime.strptime(time_str + "00", "%Y%m%d%H%M%S")  # noqa: DTZ007
     if re.match(r"^\d{8}$", time_str):
-        return datetime.strptime(time_str, "%Y%m%d")
+        return datetime.strptime(time_str, "%Y%m%d")  # noqa: DTZ007
     # *sometimes* dates are badly formatted, trying to reconstruct
     logging.warning(f"{time_str} is not in the expected format, trying to get by")
     tmp = time_str.split("+")
