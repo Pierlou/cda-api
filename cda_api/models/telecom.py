@@ -19,7 +19,7 @@ class Telecoms:
 
     def tel(self, use: str | None = None) -> str | None:
         return first_or_none(
-            [tlc.value for tlc in self.tlcs if tlc.type == "tel" and use is None or tlc.use == use]
+            [tlc.value for tlc in self.tlcs if tlc.type == "tel" and (use is None or tlc.use == use)]
         )
 
     def email(self, use: str | None = None) -> str | None:
@@ -27,7 +27,7 @@ class Telecoms:
             [
                 tlc.value
                 for tlc in self.tlcs
-                if tlc.type == "mailto" and use is None or tlc.use == use
+                if tlc.type == "mailto" and (use is None or tlc.use == use)
             ]
         )
 
