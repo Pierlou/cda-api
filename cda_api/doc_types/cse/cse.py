@@ -65,7 +65,9 @@ class CSE(Api):
                 break
 
         # examination details
-        exam = next(se for se in self.doc.documentation_of if se.class_code == "ACT")  # always only one?
+        exam = next(
+            se for se in self.doc.documentation_of if se.class_code == "ACT"
+        )  # always only one?
         self.attributes["exam_date"] = exam.effective_time.any_value
         self.attributes["exam_doc_name"] = exam.performers[0].name.display
         self.attributes["exam_doc_qual"] = exam.performers[0].code.display_name
