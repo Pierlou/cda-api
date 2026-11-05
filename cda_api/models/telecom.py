@@ -13,25 +13,23 @@ class Telecom(PrettyPrint):
 class Telecoms:
     def __init__(self, tlcs: list[Telecom]):
         self.tlcs: list[Telecom] = tlcs
-    
+
     def __repr__(self) -> str:
         return self.tlcs.__repr__()
-    
+
     def tel(self, use: str | None = None) -> str | None:
-        return first_or_none([
-            tlc.value
-            for tlc in self.tlcs
-            if tlc.type == "tel"
-            and use is None or tlc.use == use
-        ])
-    
+        return first_or_none(
+            [tlc.value for tlc in self.tlcs if tlc.type == "tel" and use is None or tlc.use == use]
+        )
+
     def email(self, use: str | None = None) -> str | None:
-        return first_or_none([
-            tlc.value
-            for tlc in self.tlcs
-            if tlc.type == "mailto"
-            and use is None or tlc.use == use
-        ])
+        return first_or_none(
+            [
+                tlc.value
+                for tlc in self.tlcs
+                if tlc.type == "mailto" and use is None or tlc.use == use
+            ]
+        )
 
 
 class TelecomParser(Parser):

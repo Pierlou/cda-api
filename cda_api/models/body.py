@@ -4,7 +4,7 @@ import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import Any, ClassVar
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.name import Name, NameParser
 from cda_api.models.performer import Perfomer, PerfomerParser
 from cda_api.models.person import Person, PersonParser
-from cda_api.models.telecom import Telecoms, TelecomParser
+from cda_api.models.telecom import TelecomParser, Telecoms
 from cda_api.utils import (
     NullObject,
     Parser,
@@ -158,13 +158,15 @@ class Qualifiers:
             case 1:
                 return self.quals[0].value
             case _:
-                raise ValueError(f"Requesting value with more than one qualifier is ambiguous: {self.quals}")
+                raise ValueError(
+                    f"Requesting value with more than one qualifier is ambiguous: {self.quals}"
+                )
 
     class QCode:
         # we want to be able to match a code with the same syntax as a Code
         def __init__(self, quals: list[Qualifier]):
             self.quals = quals
-        
+
         def __eq__(self, code: str) -> bool:
             for q in self.quals:
                 if q.code == code:
@@ -258,13 +260,15 @@ class ValueParser(Parser):
             value=self.raw.get("@value"),
             unit=self.raw.get("@unit"),
             original_text=self.raw.get("originalText", {}).get("reference", {}).get("@value"),
-            qualifier=Qualifiers([
-                Qualifier(
-                    name=CodeParser(q.get("name")).parse(),
-                    value=CodeParser(q.get("value")).parse(),
-                )
-                for q in ensure_list(self.raw.get("qualifier") or [])
-            ]),
+            qualifier=Qualifiers(
+                [
+                    Qualifier(
+                        name=CodeParser(q.get("name")).parse(),
+                        value=CodeParser(q.get("value")).parse(),
+                    )
+                    for q in ensure_list(self.raw.get("qualifier") or [])
+                ]
+            ),
         )
 
 
@@ -388,7 +392,7 @@ class Entry(PrettyPrint):
 
 
 class EntryParser(Parser):
-    _default_parsing_value = []
+    _default_parsing_value: ClassVar = []
 
     def _parse(self) -> list[Entry]:
         self.ensure_raw_is_list()
@@ -416,13 +420,14 @@ class EntryParser(Parser):
                     template_id=template_id + ExtIdParser(entry.get("templateId")).parse(),
                     id=ExtIdParser(entry.get("id")).parse(),
                     code=CodeParser(entry.get("code")).parse(),
-                    qualifier=Qualifiers([
-                        Qualifier(
-                            CodeParser(q.get("name")).parse(),
-                            CodeParser(q.get("value")).parse(),
-                        )
-                        for q in ensure_list(entry.get("code", {}).get("qualifier"))
-                    ]
+                    qualifier=Qualifiers(
+                        [
+                            Qualifier(
+                                CodeParser(q.get("name")).parse(),
+                                CodeParser(q.get("value")).parse(),
+                            )
+                            for q in ensure_list(entry.get("code", {}).get("qualifier"))
+                        ]
                     ),
                     text=((entry.get("text") or {}).get("reference") or {}).get("@value"),
                     status_code=CodeParser(entry.get("statusCode")).parse(),

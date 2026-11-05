@@ -36,8 +36,10 @@ class Api(ABC):
     def to_csv(
         self,
         file_path: str | None = None,
-        pandas_kwargs: dict = {"encoding": "utf-8", "index": False, "sep": ";"},
+        pandas_kwargs: dict | None = None,
     ):
         """Dumps self.attributes as a single-row csv file"""
+        if pandas_kwargs is None:
+            pandas_kwargs = {"encoding": "utf-8", "index": False, "sep": ";"}
         df = pd.DataFrame([self.attributes])
         df.to_csv(file_path or f"{self.__class__.__name__.lower()}.csv", **pandas_kwargs)

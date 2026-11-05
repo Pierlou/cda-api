@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import ClassVar
 
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.device import Device, DeviceParser
@@ -21,7 +22,7 @@ class Assigned(Person, Device, PrettyPrint):
 
 
 class AssignedParser(Parser):
-    _default_parsing_value = []
+    _default_parsing_value: ClassVar = []
 
     def _parse(
         self,

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import ClassVar
 
 from cda_api.utils import Parser, PrettyPrint
 
@@ -12,7 +13,7 @@ class ExtId(PrettyPrint):
 
 
 class ExtIdParser(Parser):
-    _default_parsing_value = []
+    _default_parsing_value: ClassVar = []
 
     def _parse(self) -> list[ExtId]:
         self.ensure_raw_is_list()

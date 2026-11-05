@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from cda_api.models.code import Code, CodeParser
 from cda_api.models.ext_id import ExtId, ExtIdParser
 from cda_api.models.place import Place, PlaceParser
-from cda_api.models.telecom import Telecoms, TelecomParser
+from cda_api.models.telecom import TelecomParser, Telecoms
 from cda_api.utils import NullObject, Parser
 
 

@@ -76,7 +76,7 @@ class AddressParser(Parser):
                 country=self.raw.get("country"),
                 county=self.raw.get("county"),
                 use=self.raw.get("@use"),
-                street_address_line="|".join(ensure_list(self.raw.get("streetAddressLine")))
+                street_address_line="|".join(ensure_list(self.raw.get("streetAddressLine"))),
             )
         elif isinstance(self.raw, list):
             return [
@@ -89,7 +89,7 @@ class AddressParser(Parser):
                     country=a.get("country"),
                     county=a.get("county"),
                     use=a.get("@use"),
-                    street_address_line="|".join(ensure_list(a.get("streetAddressLine")))
+                    street_address_line="|".join(ensure_list(a.get("streetAddressLine"))),
                 )
                 for a in self.raw
             ]

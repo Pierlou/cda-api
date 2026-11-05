@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from cda_api.models.address import Address, AddressParser
 from cda_api.models.name import Name, NameParser
-from cda_api.models.telecom import Telecoms, TelecomParser
-from cda_api.utils import Parser, PrettyPrint, first_or_none
+from cda_api.models.telecom import TelecomParser, Telecoms
+from cda_api.utils import Parser, PrettyPrint
 
 
 @dataclass(frozen=True, repr=False)
